@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{env, time::Duration};
 
 use anyhow::Result;
 use bookmeter::BookMeterClient;
@@ -37,8 +37,9 @@ impl BookMeterDiscounts {
 
     pub async fn update_discounts(&self) -> Result<()> {
         // 読書メーターから本情報の取得
+        let max_page = env::var("MAX_PAGE").unwrap_or("1".to_string()).parse()?;
         let bookmeter_client = BookMeterClient::new(self.user_id.parse()?);
-        let bookmeter_books = bookmeter_client.get_books(1, &self.db).await?;
+        let bookmeter_books = bookmeter_client.get_books(max_page, &self.db).await?;
         for bookmeter_book in bookmeter_books {
             let book = model::ActiveModel::from(bookmeter_book);
             if let Err(e) = Book::insert(book).exec(&self.db).await {
