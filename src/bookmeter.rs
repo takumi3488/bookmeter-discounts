@@ -35,7 +35,12 @@ impl BookMeterBook {
         let doc = reqwest::get(&url).await?.text().await?;
         let html = Html::parse_document(&doc);
         let selector = Selector::parse(".inner__title").unwrap();
-        let title = html.select(&selector).next().unwrap().text().collect();
+        let title = html
+            .select(&selector)
+            .next()
+            .ok_or(anyhow::anyhow!("title not found: id={}", id))?
+            .text()
+            .collect();
         Ok(title)
     }
 
