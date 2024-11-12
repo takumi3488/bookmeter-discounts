@@ -71,6 +71,7 @@ impl BookMeterDiscounts {
         // kindle id取得済みの本の価格を取得
         let mut stream = Book::find()
             .filter(model::Column::KindleId.is_not_null())
+            .order_by_asc(model::Column::UpdatedAt)
             .stream(&self.db)
             .await?;
         while let Some(item) = stream.try_next().await? {
