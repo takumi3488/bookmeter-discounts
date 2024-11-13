@@ -6,7 +6,7 @@ COPY . .
 RUN cargo build --release
 
 
-FROM debian:bookworm-slim AS runner
+FROM debian:bookworm-slim AS cli
 
 WORKDIR /usr/src/app
 
@@ -16,3 +16,12 @@ COPY ./get-amazon-html.sh .
 COPY --from=builder /usr/src/app/target/release/bookmeter_discounts .
 
 CMD ["./bookmeter_discounts"]
+
+
+FROM debian:bookworm-slim AS server
+
+WORKDIR /usr/src/app
+
+COPY --from=builder /usr/src/app/target/release/server .
+
+CMD ["./server"]

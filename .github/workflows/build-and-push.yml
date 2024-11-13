@@ -36,10 +36,20 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-    - name: Build and push
+    - name: Build and push (cli)
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         labels: ${{ steps.meta.outputs.labels }}
+        target: cli
+
+    - name: Build and push (server)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        target: server
