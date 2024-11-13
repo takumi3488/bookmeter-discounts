@@ -5,7 +5,7 @@ use bookmeter::BookMeterClient;
 
 mod bookmeter;
 mod kindle;
-mod model;
+pub mod model;
 use futures::{Stream, TryStreamExt};
 use kindle::Kindle;
 use model::Entity as Book;
