@@ -1,8 +1,9 @@
 use crate::bookmeter::BookMeterBook;
 use sea_orm::{entity::prelude::*, Set};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, DeriveEntityModel, Serialize)]
+#[derive(Clone, Debug, DeriveEntityModel, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[sea_orm(table_name = "books")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
