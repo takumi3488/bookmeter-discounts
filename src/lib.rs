@@ -59,7 +59,7 @@ impl BookMeterDiscounts {
             let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&amazon_url).await {
                 Ok(id) => id,
                 Err(e) => {
-                    eprintln!("{:?}", e);
+                    eprintln!("error while getting kindle id from {}: {:?}", amazon_url, e);
                     continue;
                 }
             };
@@ -81,7 +81,7 @@ impl BookMeterDiscounts {
             let kindle = match Kindle::from_id(&kindle_id).await {
                 Ok(kindle) => kindle,
                 Err(e) => {
-                    eprintln!("{:?}", e);
+                    eprintln!("error while getting kindle price from {}: {:?}", kindle_id, e);
                     continue;
                 }
             };
