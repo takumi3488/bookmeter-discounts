@@ -53,7 +53,7 @@ impl BookMeterDiscounts {
             .stream(&self.db)
             .await?;
         while let Some(item) = stream.try_next().await? {
-            sleep(Duration::from_secs(1)).await;
+            sleep(Duration::from_secs(30)).await;
             let mut book: model::ActiveModel = item.into();
             let amazon_url = book.amazon_url.clone().into_value().unwrap().to_string();
             let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&amazon_url).await {
