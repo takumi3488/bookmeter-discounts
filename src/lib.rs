@@ -10,7 +10,8 @@ use futures::{Stream, TryStreamExt};
 use kindle::Kindle;
 use model::Entity as Book;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, QuerySelect, Set
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder,
+    QuerySelect, Set,
 };
 use tokio::time::sleep;
 
@@ -81,7 +82,10 @@ impl BookMeterDiscounts {
             let kindle = match Kindle::from_id(&kindle_id).await {
                 Ok(kindle) => kindle,
                 Err(e) => {
-                    eprintln!("error while getting kindle price from {}: {:?}", kindle_id, e);
+                    eprintln!(
+                        "error while getting kindle price from {}: {:?}",
+                        kindle_id, e
+                    );
                     continue;
                 }
             };
