@@ -10,7 +10,7 @@ use futures::{Stream, TryStreamExt};
 use kindle::Kindle;
 use model::Entity as Book;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, Set,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, QuerySelect, Set
 };
 use tokio::time::sleep;
 
@@ -32,7 +32,7 @@ impl BookMeterDiscounts {
         &'a self,
     ) -> Result<impl Stream<Item = Result<model::Model>> + 'a> {
         self.update_discounts().await?;
-        self.get_discounts().await
+        self.get_discounts(Some(10)).await
     }
 
     pub async fn update_discounts(&self) -> Result<()> {
@@ -97,6 +97,7 @@ impl BookMeterDiscounts {
     #[allow(clippy::needless_lifetimes)]
     pub async fn get_discounts<'a>(
         &'a self,
+        limit: Option<u64>,
     ) -> Result<impl Stream<Item = Result<model::Model>> + 'a> {
         Ok(Book::find()
             .filter(model::Column::Title.is_not_null())
@@ -106,6 +107,7 @@ impl BookMeterDiscounts {
             .order_by_desc(model::Column::DiscountRate)
             .order_by_desc(model::Column::Price)
             .order_by_asc(model::Column::Title)
+            .limit(limit.unwrap_or(50))
             .stream(&self.db)
             .await
             .map_err(|e| anyhow::anyhow!("{:?}", e))?

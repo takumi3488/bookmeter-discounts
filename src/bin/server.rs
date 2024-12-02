@@ -21,7 +21,7 @@ async fn get_books() -> Json<Vec<Book>> {
     let db = Database::connect(&database_url).await.unwrap();
     let bookmeter_discounts_client = BookMeterDiscounts::new(&user_id, db);
     let books = bookmeter_discounts_client
-        .get_discounts()
+        .get_discounts(Some(100))
         .await
         .unwrap()
         .try_collect::<Vec<_>>()
