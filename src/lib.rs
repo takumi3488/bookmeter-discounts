@@ -10,8 +10,8 @@ use futures::{Stream, TryStreamExt};
 use kindle::Kindle;
 use model::Entity as Book;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder,
-    QuerySelect, Set,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter,
+    QueryOrder, QuerySelect, Set,
 };
 use tokio::time::sleep;
 
@@ -43,54 +43,55 @@ impl BookMeterDiscounts {
         let max_page = env::var("MAX_PAGE").unwrap_or("1".to_string()).parse()?;
         let bookmeter_client = BookMeterClient::new(self.user_id.parse()?);
         let bookmeter_books = bookmeter_client.get_books(max_page, &self.db).await?;
-        for bookmeter_book in bookmeter_books {
+        for bookmeter_book in bookmeter_books.clone() {
             let book = model::ActiveModel::from(bookmeter_book);
             if let Err(e) = Book::insert(book).exec(&self.db).await {
                 eprintln!("{:?}", e);
             }
         }
 
-        // kindle idの取得
+        // kindle idの取得と読書メーターから削除済みの本の削除
         let mut stream = Book::find()
             .filter(model::Column::KindleId.is_null())
             .stream(&self.db)
             .await?;
         while let Some(item) = stream.try_next().await? {
-            let mut book: model::ActiveModel = item.into();
+            let book: model::Model = item;
+            let mut active_book = book.clone().into_active_model();
+            if bookmeter_books
+                .iter()
+                .any(|b| b.id as i64 == book.bookmeter_id)
+            {
+                active_book.delete(&self.db).await?;
+                continue;
+            }
             if book
                 .active_at
-                .clone()
-                .into_value()
-                .is_some_and(|active_at| {
-                    active_at
-                        .as_ref_chrono_date_time()
-                        .is_some_and(|&active_at| active_at > chrono::Utc::now().naive_utc())
-                })
+                .is_some_and(|active_at| active_at > chrono::Utc::now().naive_utc())
             {
-                println!(
-                    "skip getting kindle id for {}",
-                    book.title.into_value().unwrap()
-                );
+                println!("skip getting kindle id for {}", book.title,);
                 continue;
             }
             sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
-            let amazon_url = book.amazon_url.clone().into_value().unwrap().to_string();
-            let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&amazon_url).await {
+            let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&book.amazon_url).await {
                 Ok(id) => id,
                 Err(e) => {
-                    eprintln!("error while getting kindle id from {}: {:?}", amazon_url, e);
+                    eprintln!(
+                        "error while getting kindle id from {}: {:?}",
+                        book.amazon_url, e
+                    );
                     if e.to_string().contains("Kindle button not found") {
-                        book.active_at = Set(Some(
+                        active_book.active_at = Set(Some(
                             chrono::Utc::now().naive_utc() + chrono::Duration::days(30),
                         ));
-                        book.update(&self.db).await?;
+                        active_book.update(&self.db).await?;
                     }
                     continue;
                 }
             };
-            book.kindle_id = Set(Some(kindle_id));
-            book.updated_at = Set(chrono::Utc::now().naive_utc());
-            book.update(&self.db).await?;
+            active_book.kindle_id = Set(Some(kindle_id));
+            active_book.updated_at = Set(chrono::Utc::now().naive_utc());
+            active_book.update(&self.db).await?;
         }
 
         // kindle id取得済みの本の価格を取得
