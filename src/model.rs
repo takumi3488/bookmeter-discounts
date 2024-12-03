@@ -15,6 +15,7 @@ pub struct Model {
     pub price: Option<i32>,
     pub discount_rate: Option<f32>,
     pub updated_at: chrono::NaiveDateTime,
+    pub active_at: Option<chrono::NaiveDateTime>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -33,6 +34,7 @@ impl From<BookMeterBook> for ActiveModel {
             price: Set(None),
             discount_rate: Set(None),
             updated_at: Set(chrono::Utc::now().naive_utc()),
+            active_at: Set(None),
         }
     }
 }

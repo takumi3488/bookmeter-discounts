@@ -54,13 +54,35 @@ impl BookMeterDiscounts {
             .stream(&self.db)
             .await?;
         while let Some(item) = stream.try_next().await? {
-            sleep(Duration::from_secs(30)).await;
             let mut book: model::ActiveModel = item.into();
+            if book
+                .active_at
+                .clone()
+                .into_value()
+                .is_some_and(|active_at| {
+                    active_at
+                        .as_ref_chrono_date_time()
+                        .is_some_and(|&active_at| active_at > chrono::Utc::now().naive_utc())
+                })
+            {
+                println!(
+                    "skip getting kindle id for {}",
+                    book.title.into_value().unwrap()
+                );
+                continue;
+            }
+            sleep(Duration::from_secs(30)).await;
             let amazon_url = book.amazon_url.clone().into_value().unwrap().to_string();
             let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&amazon_url).await {
                 Ok(id) => id,
                 Err(e) => {
                     eprintln!("error while getting kindle id from {}: {:?}", amazon_url, e);
+                    if e.to_string().contains("Kindle button not found") {
+                        book.active_at = Set(Some(
+                            chrono::Utc::now().naive_utc() + chrono::Duration::days(30),
+                        ));
+                        book.update(&self.db).await?;
+                    }
                     continue;
                 }
             };
