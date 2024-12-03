@@ -6,6 +6,7 @@ use sea_orm::Database;
 
 #[tokio::main]
 async fn main() {
+    // メインの処理
     let user_id = env::var("USER_ID").expect("USER_ID must be set");
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let db = Database::connect(&db_url).await.unwrap();
@@ -26,4 +27,11 @@ async fn main() {
             eprintln!("Error\t{:?}", e);
         }
     };
+
+    // Webhookの送信
+    if let Ok(url) = env::var("WEBHOOK_URL") {
+        let client = reqwest::Client::new();
+        let res = client.post(&url).send().await.unwrap();
+        println!("Webhook\t{:?}", res);
+    }
 }
