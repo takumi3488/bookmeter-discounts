@@ -9,8 +9,12 @@ async fn main() {
     // メインの処理
     let user_id = env::var("USER_ID").expect("USER_ID must be set");
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let get_amazon_page_interval = env::var("GET_AMAZON_PAGE_INTERVAL")
+        .unwrap_or("10".to_string())
+        .parse::<u64>()
+        .expect("GET_AMAZON_PAGE_INTERVAL must be a number");
     let db = Database::connect(&db_url).await.unwrap();
-    let bookmeter_discounts = BookMeterDiscounts::new(&user_id, db);
+    let bookmeter_discounts = BookMeterDiscounts::new(&user_id, db, get_amazon_page_interval);
     match bookmeter_discounts.update_and_get_discounts().await {
         Ok(mut stream) => {
             println!("Title\tURL\tDiscount Rate");

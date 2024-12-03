@@ -19,7 +19,7 @@ async fn get_books() -> Json<Vec<Book>> {
     let user_id = env::var("USER_ID").expect("USER_ID is not set");
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set");
     let db = Database::connect(&database_url).await.unwrap();
-    let bookmeter_discounts_client = BookMeterDiscounts::new(&user_id, db);
+    let bookmeter_discounts_client = BookMeterDiscounts::new(&user_id, db, 0);
     let books = bookmeter_discounts_client
         .get_discounts(Some(100))
         .await
