@@ -18,13 +18,15 @@ use tokio::time::sleep;
 pub struct BookMeterDiscounts {
     pub user_id: String,
     pub db: DatabaseConnection,
+    pub get_amazon_page_interval: u64,
 }
 
 impl BookMeterDiscounts {
-    pub fn new(user_id: &str, db: DatabaseConnection) -> Self {
+    pub fn new(user_id: &str, db: DatabaseConnection, get_amazon_page_interval: u64) -> Self {
         Self {
             user_id: user_id.to_string(),
             db,
+            get_amazon_page_interval,
         }
     }
 
@@ -71,7 +73,7 @@ impl BookMeterDiscounts {
                 );
                 continue;
             }
-            sleep(Duration::from_secs(30)).await;
+            sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
             let amazon_url = book.amazon_url.clone().into_value().unwrap().to_string();
             let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&amazon_url).await {
                 Ok(id) => id,
@@ -98,7 +100,7 @@ impl BookMeterDiscounts {
             .stream(&self.db)
             .await?;
         while let Some(item) = stream.try_next().await? {
-            sleep(Duration::from_secs(30)).await;
+            sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
             let mut book: model::ActiveModel = item.into();
             let kindle_id = book.kindle_id.clone().into_value().unwrap().to_string();
             let kindle = match Kindle::from_id(&kindle_id).await {
