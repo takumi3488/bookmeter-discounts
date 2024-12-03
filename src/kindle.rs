@@ -73,24 +73,25 @@ impl Kindle {
 
     /// KindleのIDから情報を取得する
     pub async fn from_id(kindle_id: &str) -> Result<Self> {
-        let doc = Self::get_html_by_amazon_id(kindle_id).await?;
+        let doc = reqwest::get(format!(
+            "https://www.listasin.net/kndlsl/asins/{}",
+            kindle_id.trim_matches('\'')
+        ))
+        .await?
+        .text()
+        .await?;
         let html = Html::parse_document(&doc);
 
         // 値段の取得
-        let price_selector = Selector::parse("#kindle-price").unwrap();
+        let price_selector = Selector::parse(".item-price > span").unwrap();
         let price = html
             .select(&price_selector)
+            .filter_map(|e| e.attr("data-price").map(|s| s.parse::<u32>().unwrap()))
             .next()
-            .ok_or(anyhow::anyhow!("price not found: {}", kindle_id))?
-            .text()
-            .collect::<String>()
-            .trim()
-            .replace("￥", "")
-            .replace(",", "")
-            .parse::<u32>()?;
+            .ok_or(anyhow::anyhow!("Price not found"))?;
 
         // 基本価格の取得
-        let basis_selector = Selector::parse("#basis-price").unwrap();
+        let basis_selector = Selector::parse(".item-price > s").unwrap();
         let basis_price = html
             .select(&basis_selector)
             .next()
@@ -99,29 +100,17 @@ impl Kindle {
                     .text()
                     .collect::<String>()
                     .trim()
-                    .replace("￥", "")
-                    .replace(",", "")
                     .parse::<u32>()
                     .unwrap()
             })
             .unwrap_or(price);
 
         // 還元ポイントの取得
-        let point_selector = Selector::parse("#aip-buybox-display-text").unwrap();
+        let point_selector = Selector::parse(".item-point > span").unwrap();
         let point = html
             .select(&point_selector)
+            .filter_map(|e| e.attr("data-point").map(|s| s.parse::<u32>().unwrap()))
             .next()
-            .map(|element_ref| {
-                element_ref
-                    .text()
-                    .collect::<String>()
-                    .split_whitespace()
-                    .next()
-                    .unwrap_or("+0")
-                    .replace("+", "")
-                    .parse::<u32>()
-                    .unwrap()
-            })
             .unwrap_or(0);
 
         // 割引率の計算
