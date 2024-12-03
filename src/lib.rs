@@ -60,7 +60,7 @@ impl BookMeterDiscounts {
             let mut active_book = book.clone().into_active_model();
             if bookmeter_books
                 .iter()
-                .any(|b| b.id as i64 == book.bookmeter_id)
+                .all(|b| b.id as i64 != book.bookmeter_id)
             {
                 active_book.delete(&self.db).await?;
                 continue;
