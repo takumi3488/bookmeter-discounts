@@ -53,6 +53,11 @@ impl BookMeterDiscounts {
         // kindle idの取得と読書メーターから削除済みの本の削除
         let mut stream = Book::find()
             .filter(model::Column::KindleId.is_null())
+            .filter(
+                model::Column::ActiveAt
+                    .is_null()
+                    .or(model::Column::ActiveAt.lte(chrono::Utc::now().naive_utc())),
+            )
             .stream(&self.db)
             .await?;
         while let Some(item) = stream.try_next().await? {
