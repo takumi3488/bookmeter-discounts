@@ -89,6 +89,7 @@ impl BookMeterDiscounts {
                         active_book.active_at = Set(Some(
                             chrono::Utc::now().naive_utc() + chrono::Duration::days(30),
                         ));
+                        active_book.updated_at = Set(chrono::Utc::now().naive_utc());
                         active_book.update(&self.db).await?;
                     }
                     continue;
@@ -122,6 +123,7 @@ impl BookMeterDiscounts {
             book.basis_price = Set(Some(kindle.basis_price as i32));
             book.price = Set(Some(kindle.price as i32));
             book.discount_rate = Set(Some(kindle.discount_rate));
+            book.updated_at = Set(chrono::Utc::now().naive_utc());
             book.update(&self.db).await?;
         }
 
