@@ -67,6 +67,7 @@ impl BookMeterDiscounts {
                 .iter()
                 .all(|b| b.id as i64 != book.bookmeter_id)
             {
+                println!("delete bookmeter book: {}", book.title);
                 active_book.delete(&self.db).await?;
                 continue;
             }
