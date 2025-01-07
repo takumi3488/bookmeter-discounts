@@ -50,7 +50,24 @@ impl BookMeterDiscounts {
             }
         }
 
-        // kindle idの取得と読書メーターから削除済みの本の削除
+        // 読書メーターから削除済みの本の削除
+        let mut stream = Book::find()
+            .filter(model::Column::ActiveAt.is_not_null())
+            .stream(&self.db)
+            .await?;
+        while let Some(item) = stream.try_next().await? {
+            let book: model::Model = item;
+            let active_book = book.clone().into_active_model();
+            if bookmeter_books
+                .iter()
+                .all(|b| b.id as i64 != book.bookmeter_id)
+            {
+                println!("delete book: {}", book.title);
+                active_book.delete(&self.db).await?;
+            }
+        }
+
+        // kindle idの取得
         let mut stream = Book::find()
             .filter(model::Column::KindleId.is_null())
             .filter(
@@ -63,14 +80,6 @@ impl BookMeterDiscounts {
         while let Some(item) = stream.try_next().await? {
             let book: model::Model = item;
             let mut active_book = book.clone().into_active_model();
-            if bookmeter_books
-                .iter()
-                .all(|b| b.id as i64 != book.bookmeter_id)
-            {
-                println!("delete bookmeter book: {}", book.title);
-                active_book.delete(&self.db).await?;
-                continue;
-            }
             if book
                 .active_at
                 .is_some_and(|active_at| active_at > chrono::Utc::now().naive_utc())
