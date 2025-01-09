@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use crate::model as Book;
 use anyhow::Result;
+use backon::{ExponentialBuilder, Retryable};
 use scraper::{Html, Selector};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::Deserialize;
@@ -21,7 +22,17 @@ pub struct BookMeterBook {
 
 impl BookMeterBook {
     pub async fn from_id(id: u32) -> Result<BookMeterBook> {
-        let title = Self::get_title(id).await?;
+        let title = { || Self::get_title(id) }
+            .retry(
+                ExponentialBuilder::default()
+                    .with_max_delay(Duration::from_secs(3600 * 4))
+                    .without_max_times(),
+            )
+            .sleep(tokio::time::sleep)
+            .notify(|e, dur| {
+                eprintln!("retrying after {:?} because {:?}", dur, e);
+            })
+            .await?;
         let amazon_url = Self::get_amazon_url(id).await?;
         Ok(BookMeterBook {
             id,
