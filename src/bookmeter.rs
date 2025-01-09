@@ -107,6 +107,7 @@ impl BookMeterClient {
         let mut book_results = Vec::new();
         for book_id in book_ids {
             let book = BookMeterBook::from_id(book_id).await;
+            println!("got book_meter_book: {:?}", book);
             book_results.push(book);
             sleep(Duration::from_secs(1)).await;
         }

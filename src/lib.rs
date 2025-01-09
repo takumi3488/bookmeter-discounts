@@ -51,9 +51,7 @@ impl BookMeterDiscounts {
         }
 
         // 読書メーターから削除済みの本の削除
-        let mut stream = Book::find()
-            .stream(&self.db)
-            .await?;
+        let mut stream = Book::find().stream(&self.db).await?;
         while let Some(item) = stream.try_next().await? {
             let book: model::Model = item;
             let active_book = book.clone().into_active_model();
