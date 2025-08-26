@@ -6,7 +6,7 @@ permissions:
   pull-requests: write
 
 env:
-  REGISTRY: registry.takumi3488.com
+  REGISTRY: registry.onara.boo
   IMAGE_NAME: bookmeter-discounts
 
 on:
