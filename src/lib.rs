@@ -5,8 +5,8 @@ use bookmeter::BookMeterClient;
 
 mod bookmeter;
 mod kindle;
-pub mod model;
 mod metrics;
+pub mod model;
 use futures::{Stream, TryStreamExt};
 use kindle::Kindle;
 use model::Entity as Book;
@@ -24,7 +24,11 @@ pub struct BookMeterDiscounts {
 }
 
 impl BookMeterDiscounts {
-    pub fn new(user_id: &str, db: DatabaseConnection, get_amazon_page_interval: u64) -> Result<Self> {
+    pub fn new(
+        user_id: &str,
+        db: DatabaseConnection,
+        get_amazon_page_interval: u64,
+    ) -> Result<Self> {
         let metrics = metrics::MetricsCollector::new()?;
         Ok(Self {
             user_id: user_id.to_string(),

@@ -14,7 +14,8 @@ async fn main() {
         .parse::<u64>()
         .expect("GET_AMAZON_PAGE_INTERVAL must be a number");
     let db = Database::connect(&db_url).await.unwrap();
-    let bookmeter_discounts = BookMeterDiscounts::new(&user_id, db, get_amazon_page_interval).unwrap();
+    let bookmeter_discounts =
+        BookMeterDiscounts::new(&user_id, db, get_amazon_page_interval).unwrap();
     match bookmeter_discounts.update_and_get_discounts().await {
         Ok(mut stream) => {
             println!("Title\tURL\tDiscount Rate");
