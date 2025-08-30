@@ -6,8 +6,8 @@ permissions:
   pull-requests: write
 
 env:
-  REGISTRY: ghcr.io/takumi3488
-  IMAGE_NAME: bookmeter-discounts
+  REGISTRY: ghcr.io
+  IMAGE_NAME: takumi3488/bookmeter-discounts
 
 on:
   push:
