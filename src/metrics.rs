@@ -4,6 +4,7 @@ use opentelemetry::{
     metrics::{Counter, Meter},
     KeyValue,
 };
+use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider};
 use std::sync::Arc;
 
@@ -40,10 +41,11 @@ impl MetricsCollector {
     }
 
     fn init_meter() -> Result<Meter> {
-        // gRPC is preferred but currently the API is not fully public in 0.30.0
-        // Using HTTP endpoint as a workaround
-        let exporter = opentelemetry_otlp::HttpExporterBuilder::default()
-            .build_metrics_exporter(opentelemetry_sdk::metrics::Temporality::Cumulative)?;
+        // Build metrics exporter using the public API
+        let exporter = opentelemetry_otlp::MetricExporter::builder()
+            .with_tonic()
+            .with_timeout(std::time::Duration::from_secs(10))
+            .build()?;
 
         let reader = PeriodicReader::builder(exporter)
             .with_interval(std::time::Duration::from_secs(60))
