@@ -1,4 +1,4 @@
-use std::{env, time::Duration};
+use std::{env, sync::Arc, time::Duration};
 
 use anyhow::Result;
 use bookmeter::BookMeterClient;
@@ -6,6 +6,7 @@ use bookmeter::BookMeterClient;
 mod bookmeter;
 mod kindle;
 pub mod model;
+mod metrics;
 use futures::{Stream, TryStreamExt};
 use kindle::Kindle;
 use model::Entity as Book;
@@ -19,15 +20,18 @@ pub struct BookMeterDiscounts {
     pub user_id: String,
     pub db: DatabaseConnection,
     pub get_amazon_page_interval: u64,
+    metrics: Arc<metrics::MetricsCollector>,
 }
 
 impl BookMeterDiscounts {
-    pub fn new(user_id: &str, db: DatabaseConnection, get_amazon_page_interval: u64) -> Self {
-        Self {
+    pub fn new(user_id: &str, db: DatabaseConnection, get_amazon_page_interval: u64) -> Result<Self> {
+        let metrics = metrics::MetricsCollector::new()?;
+        Ok(Self {
             user_id: user_id.to_string(),
             db,
             get_amazon_page_interval,
-        }
+            metrics,
+        })
     }
 
     #[allow(clippy::needless_lifetimes)]
@@ -61,6 +65,7 @@ impl BookMeterDiscounts {
             {
                 println!("delete book: {}", book.title);
                 active_book.delete(&self.db).await?;
+                self.metrics.record_deleted_book();
             }
         }
 
@@ -105,6 +110,7 @@ impl BookMeterDiscounts {
             active_book.kindle_id = Set(Some(kindle_id));
             active_book.updated_at = Set(chrono::Utc::now().naive_utc());
             active_book.update(&self.db).await?;
+            self.metrics.record_kindle_id_fetched();
         }
 
         // kindle id取得済みの本の価格を取得
@@ -132,6 +138,7 @@ impl BookMeterDiscounts {
             book.discount_rate = Set(Some(kindle.discount_rate));
             book.updated_at = Set(chrono::Utc::now().naive_utc());
             book.update(&self.db).await?;
+            self.metrics.record_price_fetched();
         }
 
         Ok(())

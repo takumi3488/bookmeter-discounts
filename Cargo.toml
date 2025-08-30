@@ -9,6 +9,9 @@ axum = { version = "0.8.0", features = ["macros"] }
 backon = "1.3.0"
 chrono = "0.4.38"
 futures = "0.3.31"
+opentelemetry = "0.27.0"
+opentelemetry-otlp = { version = "0.27.0", features = ["metrics"] }
+opentelemetry_sdk = { version = "0.27.0", features = ["rt-tokio", "metrics"] }
 reqwest = { version = "0.12.9", default-features = false, features = [
     "rustls-tls",
     "http2",
