@@ -30,20 +30,28 @@ jobs:
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
-    - name: Extract Docker metadata
-      id: meta
+    - name: Extract Docker metadata (cli)
+      id: meta-cli
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cli
+        tags: type=raw,value=${{ github.sha }}
 
     - name: Build and push (cli)
       uses: docker/build-push-action@v6
       with:
         context: .
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cli:${{ github.sha }}
+        labels: ${{ steps.meta-cli.outputs.labels }}
         target: cli
+
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server
+        tags: type=raw,value=${{ github.sha }}
 
     - name: Build and push (server)
       uses: docker/build-push-action@v6
