@@ -8,6 +8,7 @@ use scraper::{Html, Selector};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::Deserialize;
 use tokio::time::sleep;
+use tracing::{info, warn};
 
 pub struct BookMeterClient {
     pub user_id: u32,
@@ -30,7 +31,7 @@ impl BookMeterBook {
             )
             .sleep(tokio::time::sleep)
             .notify(|e, dur| {
-                println!("retrying after {:?} because {:?}", dur, e);
+                warn!("retrying after {:?} because {:?}", dur, e);
             })
             .await?;
         let amazon_url = Self::get_amazon_url(id).await?;
@@ -118,7 +119,7 @@ impl BookMeterClient {
         let mut book_results = Vec::new();
         for book_id in book_ids {
             let book = BookMeterBook::from_id(book_id).await;
-            println!("got book_meter_book: {:?}", book);
+            info!("got book_meter_book: {:?}", book);
             book_results.push(book);
             sleep(Duration::from_secs(1)).await;
         }

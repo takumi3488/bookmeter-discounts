@@ -2,6 +2,7 @@ use std::{env, sync::Arc, time::Duration};
 
 use anyhow::Result;
 use bookmeter::BookMeterClient;
+use tracing::{error, info, warn};
 
 mod bookmeter;
 mod kindle;
@@ -54,7 +55,7 @@ impl BookMeterDiscounts {
         for bookmeter_book in bookmeter_books.clone() {
             let book = model::ActiveModel::from(bookmeter_book);
             if let Err(e) = Book::insert(book).exec(&self.db).await {
-                eprintln!("{:?}", e);
+                error!("{:?}", e);
             }
         }
 
@@ -67,7 +68,7 @@ impl BookMeterDiscounts {
                 .iter()
                 .all(|b| b.id as i64 != book.bookmeter_id)
             {
-                println!("delete book: {}", book.title);
+                info!("delete book: {}", book.title);
                 active_book.delete(&self.db).await?;
                 self.metrics.record_deleted_book();
             }
@@ -90,14 +91,14 @@ impl BookMeterDiscounts {
                 .active_at
                 .is_some_and(|active_at| active_at > chrono::Utc::now().naive_utc())
             {
-                println!("skip getting kindle id for {}", book.title,);
+                info!("skip getting kindle id for {}", book.title,);
                 continue;
             }
             sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
             let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&book.amazon_url).await {
                 Ok(id) => id,
                 Err(e) => {
-                    println!(
+                    warn!(
                         "error while getting kindle id from {}: {:?}",
                         book.amazon_url, e
                     );
@@ -130,7 +131,7 @@ impl BookMeterDiscounts {
             let kindle = match Kindle::from_id(&kindle_id).await {
                 Ok(kindle) => kindle,
                 Err(e) => {
-                    eprintln!(
+                    warn!(
                         "error while getting kindle price from {}: {:?}",
                         kindle_id, e
                     );

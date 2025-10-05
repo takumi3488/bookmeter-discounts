@@ -3,6 +3,7 @@ use std::env;
 use bookmeter_discounts::BookMeterDiscounts;
 use futures::TryStreamExt;
 use sea_orm::Database;
+use tracing::{error, info};
 
 #[tokio::main]
 async fn main() {
@@ -29,7 +30,7 @@ async fn main() {
             }
         }
         Err(e) => {
-            eprintln!("Error\t{:?}", e);
+            error!("Error\t{:?}", e);
         }
     };
 
@@ -37,6 +38,6 @@ async fn main() {
     if let Ok(url) = env::var("WEBHOOK_URL") {
         let client = reqwest::Client::new();
         let res = client.post(&url).send().await.unwrap();
-        println!("Webhook\t{:?}", res);
+        info!("Webhook\t{:?}", res);
     }
 }
