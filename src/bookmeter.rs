@@ -30,7 +30,7 @@ impl BookMeterBook {
             )
             .sleep(tokio::time::sleep)
             .notify(|e, dur| {
-                eprintln!("retrying after {:?} because {:?}", dur, e);
+                println!("retrying after {:?} because {:?}", dur, e);
             })
             .await?;
         let amazon_url = Self::get_amazon_url(id).await?;

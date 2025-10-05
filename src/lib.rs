@@ -97,7 +97,7 @@ impl BookMeterDiscounts {
             let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&book.amazon_url).await {
                 Ok(id) => id,
                 Err(e) => {
-                    eprintln!(
+                    println!(
                         "error while getting kindle id from {}: {:?}",
                         book.amazon_url, e
                     );
