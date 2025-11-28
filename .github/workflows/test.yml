@@ -36,3 +36,17 @@ jobs:
     
     - name: Format with Rustfmt
       run: cargo fmt --all --check
+
+  automerge:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event.pull_request.user.login == 'renovate[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: automerge
+        uses: pascalgn/automerge-action@v0.16.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: "automerge"

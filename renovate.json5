@@ -1,16 +1,20 @@
 {
   extends: [
-    "config:base"
+    "config:best-practices"
   ],
   dependencyDashboard: false,
   packageRules: [
     {
       matchUpdateTypes: [
         "minor",
-        "patch"
+        "patch",
+        "digest"
       ],
-      groupName: "all minor and patch updates",
-      groupSlug: "all-minor-and-patch-updates",
+      groupName: "all minor, patch, and digest updates",
+      groupSlug: "all-minor-patch-digest-updates",
+      addLabels: [
+        "automerge"
+      ]
     }
   ]
 }
