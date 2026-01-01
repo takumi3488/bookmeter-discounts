@@ -15,7 +15,7 @@ opentelemetry-otlp = { version = "0.31.0", features = [
   "grpc-tonic",
 ] }
 opentelemetry_sdk = { version = "0.31.0", features = ["rt-tokio", "metrics"] }
-reqwest = { version = "0.12.9", default-features = false, features = [
+reqwest = { version = "0.13.0", default-features = false, features = [
   "rustls-tls",
   "http2",
   "gzip",
