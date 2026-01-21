@@ -16,7 +16,7 @@ opentelemetry-otlp = { version = "0.31.0", features = [
 ] }
 opentelemetry_sdk = { version = "0.31.0", features = ["rt-tokio", "metrics"] }
 reqwest = { version = "0.13.0", default-features = false, features = [
-  "rustls-tls",
+  "rustls",
   "http2",
   "gzip",
   "json",
