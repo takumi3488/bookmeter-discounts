@@ -1,4 +1,3 @@
-use anyhow::Result;
 use opentelemetry::{
     global,
     metrics::{Counter, Meter},
@@ -7,6 +6,7 @@ use opentelemetry::{
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider};
 use std::sync::Arc;
+use tracing::{info, warn};
 
 pub struct MetricsCollector {
     deleted_books_counter: Counter<u64>,
@@ -15,8 +15,8 @@ pub struct MetricsCollector {
 }
 
 impl MetricsCollector {
-    pub fn new() -> Result<Arc<Self>> {
-        let meter = Self::init_meter()?;
+    pub fn new() -> Arc<Self> {
+        let meter = Self::init_meter();
 
         let deleted_books_counter = meter
             .u64_counter("bookmeter.deleted_books")
@@ -33,14 +33,37 @@ impl MetricsCollector {
             .with_description("Number of prices fetched for books with Kindle ID")
             .build();
 
-        Ok(Arc::new(Self {
+        Arc::new(Self {
             deleted_books_counter,
             kindle_id_fetched_counter,
             price_fetched_counter,
-        }))
+        })
     }
 
-    fn init_meter() -> Result<Meter> {
+    fn init_meter() -> Meter {
+        // OTLP エンドポイントが設定されていない場合は Noop メーターを返す
+        if std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT").is_err() {
+            info!("OTEL_EXPORTER_OTLP_ENDPOINT not set, using noop metrics");
+            return global::meter("bookmeter-discounts");
+        }
+
+        // OTLP 接続を試みる
+        match Self::try_init_otlp_meter() {
+            Ok(meter) => {
+                info!("OpenTelemetry metrics initialized successfully");
+                meter
+            }
+            Err(e) => {
+                warn!(
+                    "Failed to initialize OpenTelemetry metrics: {:?}, using noop metrics",
+                    e
+                );
+                global::meter("bookmeter-discounts")
+            }
+        }
+    }
+
+    fn try_init_otlp_meter() -> Result<Meter, Box<dyn std::error::Error>> {
         // Build metrics exporter using the public API
         let exporter = opentelemetry_otlp::MetricExporter::builder()
             .with_tonic()

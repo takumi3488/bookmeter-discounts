@@ -44,7 +44,10 @@ impl BookMeterBook {
 
     async fn get_title(id: u32) -> Result<String> {
         let url = format!("https://bookmeter.com/books/{}", id);
-        let doc = reqwest::get(&url).await?.text().await?;
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()?;
+        let doc = client.get(&url).send().await?.text().await?;
         let html = Html::parse_document(&doc);
         let selector = Selector::parse(".inner__title").unwrap();
         let title = html
@@ -61,7 +64,10 @@ impl BookMeterBook {
             "https://bookmeter.com/api/v1/books/{}/external_book_stores.json?",
             id
         );
-        let json: ExternalBookStores = reqwest::get(&url).await?.json().await?;
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()?;
+        let json: ExternalBookStores = client.get(&url).send().await?.json().await?;
         for store in json.resources {
             if store.url.contains("amazon") {
                 let url = store.url.trim().trim_matches('\'');
@@ -155,7 +161,10 @@ impl BookMeterClient {
             "https://bookmeter.com/users/{}/books/wish?page={}",
             self.user_id, page
         );
-        let doc = reqwest::get(&url).await?.text().await?;
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()?;
+        let doc = client.get(&url).send().await?.text().await?;
         let html = Html::parse_document(&doc);
         Ok(html)
     }

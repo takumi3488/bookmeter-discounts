@@ -2,7 +2,7 @@ use std::{env, sync::Arc, time::Duration};
 
 use anyhow::Result;
 use bookmeter::BookMeterClient;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 mod bookmeter;
 mod kindle;
@@ -25,18 +25,14 @@ pub struct BookMeterDiscounts {
 }
 
 impl BookMeterDiscounts {
-    pub fn new(
-        user_id: &str,
-        db: DatabaseConnection,
-        get_amazon_page_interval: u64,
-    ) -> Result<Self> {
-        let metrics = metrics::MetricsCollector::new()?;
-        Ok(Self {
+    pub fn new(user_id: &str, db: DatabaseConnection, get_amazon_page_interval: u64) -> Self {
+        let metrics = metrics::MetricsCollector::new();
+        Self {
             user_id: user_id.to_string(),
             db,
             get_amazon_page_interval,
             metrics,
-        })
+        }
     }
 
     #[allow(clippy::needless_lifetimes)]

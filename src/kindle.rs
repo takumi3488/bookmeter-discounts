@@ -73,13 +73,18 @@ impl Kindle {
 
     /// KindleのIDから情報を取得する
     pub async fn from_id(kindle_id: &str) -> Result<Self> {
-        let doc = reqwest::get(format!(
-            "https://www.listasin.net/kndlsl/asins/{}",
-            kindle_id.trim_matches('\'')
-        ))
-        .await?
-        .text()
-        .await?;
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()?;
+        let doc = client
+            .get(format!(
+                "https://www.listasin.net/kndlsl/asins/{}",
+                kindle_id.trim_matches('\'')
+            ))
+            .send()
+            .await?
+            .text()
+            .await?;
         let html = Html::parse_document(&doc);
 
         // 値段の取得
