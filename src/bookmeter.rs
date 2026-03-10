@@ -70,9 +70,7 @@ impl BookMeterBook {
     ///
     /// Returns an error if the HTTP request fails or no Amazon URL is found.
     async fn get_amazon_url(id: u32) -> Result<String> {
-        let url = format!(
-            "https://bookmeter.com/api/v1/books/{id}/external_book_stores.json?"
-        );
+        let url = format!("https://bookmeter.com/api/v1/books/{id}/external_book_stores.json?");
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(30))
             .build()?;
@@ -165,7 +163,11 @@ impl BookMeterClient {
                 .value()
                 .attr("href")
                 .ok_or_else(|| anyhow::anyhow!("href attribute not found"))?;
-            let id = href.split('/').next_back().ok_or_else(|| anyhow::anyhow!("Invalid href"))?.parse()?;
+            let id = href
+                .split('/')
+                .next_back()
+                .ok_or_else(|| anyhow::anyhow!("Invalid href"))?
+                .parse()?;
             book_ids.insert(id);
         }
         Ok(book_ids)

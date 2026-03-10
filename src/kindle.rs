@@ -42,9 +42,8 @@ impl Kindle {
         let id = Self::convert_amazon_url_to_id(url.trim_matches('\''))?;
         let doc = Kindle::get_html_by_amazon_id(&id).await?;
         let html = Html::parse_document(&doc);
-        let selector =
-            Selector::parse("#tmm-grid-swatch-KINDLE a.a-button-text.a-text-left")
-                .map_err(|e| anyhow::anyhow!("Failed to parse selector: {e:?}"))?;
+        let selector = Selector::parse("#tmm-grid-swatch-KINDLE a.a-button-text.a-text-left")
+            .map_err(|e| anyhow::anyhow!("Failed to parse selector: {e:?}"))?;
         let kindle_url = match html.select(&selector).next() {
             Some(node) => node
                 .value()
@@ -55,9 +54,7 @@ impl Kindle {
         if kindle_url == "javascript:void(0)" {
             Ok(id)
         } else {
-            Self::convert_amazon_url_to_id(&format!(
-                "https://www.amazon.co.jp{kindle_url}"
-            ))
+            Self::convert_amazon_url_to_id(&format!("https://www.amazon.co.jp{kindle_url}"))
         }
     }
 
@@ -112,10 +109,7 @@ impl Kindle {
             .map_err(|e| anyhow::anyhow!("Failed to parse selector: {e:?}"))?;
         let price = html
             .select(&price_selector)
-            .find_map(|e| {
-                e.attr("data-price")
-                    .and_then(|s| s.parse::<u32>().ok())
-            })
+            .find_map(|e| e.attr("data-price").and_then(|s| s.parse::<u32>().ok()))
             .ok_or_else(|| anyhow::anyhow!("Price not found"))?;
 
         // 基本価格の取得
@@ -138,10 +132,7 @@ impl Kindle {
             .map_err(|e| anyhow::anyhow!("Failed to parse selector: {e:?}"))?;
         let point = html
             .select(&point_selector)
-            .find_map(|e| {
-                e.attr("data-point")
-                    .and_then(|s| s.parse::<u32>().ok())
-            })
+            .find_map(|e| e.attr("data-point").and_then(|s| s.parse::<u32>().ok()))
             .unwrap_or(0);
 
         // 割引率の計算

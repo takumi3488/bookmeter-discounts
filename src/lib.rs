@@ -55,7 +55,9 @@ impl BookMeterDiscounts {
     /// This function does not panic.
     pub async fn update_discounts(&self) -> Result<()> {
         // 読書メーターから本情報の取得
-        let max_page = env::var("MAX_PAGE").unwrap_or_else(|_| "1".to_string()).parse()?;
+        let max_page = env::var("MAX_PAGE")
+            .unwrap_or_else(|_| "1".to_string())
+            .parse()?;
         let bookmeter_client = BookMeterClient::new(self.user_id.parse()?);
         let bookmeter_books = bookmeter_client.get_books(max_page, &self.db).await?;
         for bookmeter_book in bookmeter_books.clone() {
@@ -142,9 +144,7 @@ impl BookMeterDiscounts {
             let kindle = match Kindle::from_id(&kindle_id).await {
                 Ok(kindle) => kindle,
                 Err(e) => {
-                    info!(
-                        "error while getting kindle price from {kindle_id}: {e:?}",
-                    );
+                    info!("error while getting kindle price from {kindle_id}: {e:?}",);
                     continue;
                 }
             };
