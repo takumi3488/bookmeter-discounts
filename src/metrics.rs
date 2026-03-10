@@ -9,34 +9,34 @@ use std::sync::Arc;
 use tracing::{info, warn};
 
 pub struct MetricsCollector {
-    deleted_books_counter: Counter<u64>,
-    kindle_id_fetched_counter: Counter<u64>,
-    price_fetched_counter: Counter<u64>,
+    deleted_books: Counter<u64>,
+    kindle_id_fetched: Counter<u64>,
+    price_fetched: Counter<u64>,
 }
 
 impl MetricsCollector {
     pub fn new() -> Arc<Self> {
         let meter = Self::init_meter();
 
-        let deleted_books_counter = meter
+        let deleted_books = meter
             .u64_counter("bookmeter.deleted_books")
             .with_description("Number of books deleted from BookMeter")
             .build();
 
-        let kindle_id_fetched_counter = meter
+        let kindle_id_fetched = meter
             .u64_counter("bookmeter.kindle_id_fetched")
             .with_description("Number of Kindle IDs fetched")
             .build();
 
-        let price_fetched_counter = meter
+        let price_fetched = meter
             .u64_counter("bookmeter.price_fetched")
             .with_description("Number of prices fetched for books with Kindle ID")
             .build();
 
         Arc::new(Self {
-            deleted_books_counter,
-            kindle_id_fetched_counter,
-            price_fetched_counter,
+            deleted_books,
+            kindle_id_fetched,
+            price_fetched,
         })
     }
 
@@ -82,17 +82,17 @@ impl MetricsCollector {
     }
 
     pub fn record_deleted_book(&self) {
-        self.deleted_books_counter
+        self.deleted_books
             .add(1, &[KeyValue::new("operation", "delete_from_bookmeter")]);
     }
 
     pub fn record_kindle_id_fetched(&self) {
-        self.kindle_id_fetched_counter
+        self.kindle_id_fetched
             .add(1, &[KeyValue::new("operation", "fetch_kindle_id")]);
     }
 
     pub fn record_price_fetched(&self) {
-        self.price_fetched_counter
+        self.price_fetched
             .add(1, &[KeyValue::new("operation", "fetch_price")]);
     }
 }

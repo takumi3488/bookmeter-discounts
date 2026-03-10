@@ -25,6 +25,7 @@ pub struct BookMeterDiscounts {
 }
 
 impl BookMeterDiscounts {
+    #[must_use]
     pub fn new(user_id: &str, db: DatabaseConnection, get_amazon_page_interval: u64) -> Self {
         let metrics = metrics::MetricsCollector::new();
         Self {
@@ -35,17 +36,26 @@ impl BookMeterDiscounts {
         }
     }
 
-    #[allow(clippy::needless_lifetimes)]
-    pub async fn update_and_get_discounts<'a>(
-        &'a self,
-    ) -> Result<impl Stream<Item = Result<model::Model>> + 'a> {
+    /// # Errors
+    ///
+    /// Returns an error if updating or fetching discounts fails.
+    pub async fn update_and_get_discounts(
+        &self,
+    ) -> Result<impl Stream<Item = Result<model::Model>> + '_> {
         self.update_discounts().await?;
         self.get_discounts(Some(10)).await
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if any database or network operation fails.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub async fn update_discounts(&self) -> Result<()> {
         // 読書メーターから本情報の取得
-        let max_page = env::var("MAX_PAGE").unwrap_or("1".to_string()).parse()?;
+        let max_page = env::var("MAX_PAGE").unwrap_or_else(|_| "1".to_string()).parse()?;
         let bookmeter_client = BookMeterClient::new(self.user_id.parse()?);
         let bookmeter_books = bookmeter_client.get_books(max_page, &self.db).await?;
         for bookmeter_book in bookmeter_books.clone() {
@@ -62,7 +72,7 @@ impl BookMeterDiscounts {
             let active_book = book.clone().into_active_model();
             if bookmeter_books
                 .iter()
-                .all(|b| b.id as i64 != book.bookmeter_id)
+                .all(|b| i64::from(b.id) != book.bookmeter_id)
             {
                 info!("delete book: {}", book.title);
                 active_book.delete(&self.db).await?;
@@ -123,19 +133,23 @@ impl BookMeterDiscounts {
         while let Some(item) = stream.try_next().await? {
             sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
             let mut book: model::ActiveModel = item.into();
-            let kindle_id = book.kindle_id.clone().into_value().unwrap().to_string();
+            let kindle_id = book
+                .kindle_id
+                .clone()
+                .into_value()
+                .ok_or_else(|| anyhow::anyhow!("kindle_id is None"))?
+                .to_string();
             let kindle = match Kindle::from_id(&kindle_id).await {
                 Ok(kindle) => kindle,
                 Err(e) => {
                     info!(
-                        "error while getting kindle price from {}: {:?}",
-                        kindle_id, e
+                        "error while getting kindle price from {kindle_id}: {e:?}",
                     );
                     continue;
                 }
             };
-            book.basis_price = Set(Some(kindle.basis_price as i32));
-            book.price = Set(Some(kindle.price as i32));
+            book.basis_price = Set(Some(i64::from(kindle.basis_price)));
+            book.price = Set(Some(i64::from(kindle.price)));
             book.discount_rate = Set(Some(kindle.discount_rate));
             book.updated_at = Set(chrono::Utc::now().naive_utc());
             book.update(&self.db).await?;
@@ -145,11 +159,13 @@ impl BookMeterDiscounts {
         Ok(())
     }
 
-    #[allow(clippy::needless_lifetimes)]
-    pub async fn get_discounts<'a>(
-        &'a self,
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub async fn get_discounts(
+        &self,
         limit: Option<u64>,
-    ) -> Result<impl Stream<Item = Result<model::Model>> + 'a> {
+    ) -> Result<impl Stream<Item = Result<model::Model>> + '_> {
         Ok(Book::find()
             .filter(model::Column::Title.is_not_null())
             .filter(model::Column::BasisPrice.is_not_null())
@@ -161,7 +177,7 @@ impl BookMeterDiscounts {
             .limit(limit.unwrap_or(50))
             .stream(&self.db)
             .await
-            .map_err(|e| anyhow::anyhow!("{:?}", e))?
-            .map_err(|e| anyhow::anyhow!("{:?}", e)))
+            .map_err(|e| anyhow::anyhow!("{e:?}"))?
+            .map_err(|e| anyhow::anyhow!("{e:?}")))
     }
 }

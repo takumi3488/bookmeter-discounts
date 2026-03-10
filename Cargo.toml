@@ -33,5 +33,12 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 url = "2.5.3"
 
+[lints.clippy]
+allow_attributes = "deny"
+dbg_macro = "deny"
+expect_used = "deny"
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+
 [profile.release]
 strip = true
