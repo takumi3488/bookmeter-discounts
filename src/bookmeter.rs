@@ -22,6 +22,9 @@ pub struct BookMeterBook {
 }
 
 impl BookMeterBook {
+    /// # Errors
+    ///
+    /// Returns an error if fetching the book title or Amazon URL fails.
     pub async fn from_id(id: u32) -> Result<BookMeterBook> {
         let title = { || Self::get_title(id) }
             .retry(
@@ -42,28 +45,32 @@ impl BookMeterBook {
         })
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the HTTP request fails or the title element is not found.
     async fn get_title(id: u32) -> Result<String> {
-        let url = format!("https://bookmeter.com/books/{}", id);
+        let url = format!("https://bookmeter.com/books/{id}");
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(30))
             .build()?;
         let doc = client.get(&url).send().await?.text().await?;
         let html = Html::parse_document(&doc);
-        let selector = Selector::parse(".inner__title").unwrap();
+        let selector = Selector::parse(".inner__title")
+            .map_err(|e| anyhow::anyhow!("Failed to parse selector: {e:?}"))?;
         let title = html
             .select(&selector)
             .next()
-            .ok_or(anyhow::anyhow!("title not found: id={}", id))?
+            .ok_or_else(|| anyhow::anyhow!("title not found: id={id}"))?
             .text()
             .collect();
         Ok(title)
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if the HTTP request fails or no Amazon URL is found.
     async fn get_amazon_url(id: u32) -> Result<String> {
-        let url = format!(
-            "https://bookmeter.com/api/v1/books/{}/external_book_stores.json?",
-            id
-        );
+        let url = format!("https://bookmeter.com/api/v1/books/{id}/external_book_stores.json?");
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(30))
             .build()?;
@@ -89,11 +96,16 @@ pub struct ExternalBookStores {
 }
 
 impl BookMeterClient {
+    #[must_use]
     pub fn new(user_id: u32) -> BookMeterClient {
         BookMeterClient { user_id }
     }
 
     /// 読書メーターの本を全て取得する
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if fetching books or querying the database fails.
     pub async fn get_books(
         &self,
         max_page: u16,
@@ -104,12 +116,12 @@ impl BookMeterClient {
         let mut page = 1;
         while page <= max_page {
             let html = self.get_book_page_html(page).await?;
-            let new_book_ids = BookMeterClient::get_book_ids_from_html(html).await?;
+            let new_book_ids = BookMeterClient::get_book_ids_from_html(&html)?;
             if new_book_ids.is_empty() {
                 break;
             }
             for new_book_id in new_book_ids {
-                if Book::Entity::find_by_id(new_book_id as i64)
+                if Book::Entity::find_by_id(i64::from(new_book_id))
                     .one(db)
                     .await
                     .is_ok_and(|response| response.is_none())
@@ -137,18 +149,24 @@ impl BookMeterClient {
 
     /// 読書メーターの本IDをHTMLから取得する
     ///
-    /// 結果はB木集合のResultで返す
-    async fn get_book_ids_from_html(html: Html) -> Result<BTreeSet<u32>> {
-        let selector = Selector::parse(".detail__title > a").unwrap();
+    /// 結果は`BTreeSet`の`Result`で返す
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the selector cannot be parsed or a book ID cannot be parsed.
+    fn get_book_ids_from_html(html: &Html) -> Result<BTreeSet<u32>> {
+        let selector = Selector::parse(".detail__title > a")
+            .map_err(|e| anyhow::anyhow!("Failed to parse selector: {e:?}"))?;
         let mut book_ids = BTreeSet::new();
         for node in html.select(&selector) {
-            let id = node
+            let href = node
                 .value()
                 .attr("href")
-                .unwrap()
-                .split("/")
-                .last()
-                .unwrap()
+                .ok_or_else(|| anyhow::anyhow!("href attribute not found"))?;
+            let id = href
+                .split('/')
+                .next_back()
+                .ok_or_else(|| anyhow::anyhow!("Invalid href"))?
                 .parse()?;
             book_ids.insert(id);
         }
@@ -156,10 +174,14 @@ impl BookMeterClient {
     }
 
     /// 読書メーターの読みたい本リストの指定したページのHTMLを取得する
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the HTTP request fails.
     pub async fn get_book_page_html(&self, page: u16) -> Result<Html> {
         let url: String = format!(
-            "https://bookmeter.com/users/{}/books/wish?page={}",
-            self.user_id, page
+            "https://bookmeter.com/users/{}/books/wish?page={page}",
+            self.user_id
         );
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(30))

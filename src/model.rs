@@ -11,9 +11,9 @@ pub struct Model {
     pub amazon_url: String,
     pub kindle_id: Option<String>,
     pub title: String,
-    pub basis_price: Option<i32>,
-    pub price: Option<i32>,
-    pub discount_rate: Option<f32>,
+    pub basis_price: Option<i64>,
+    pub price: Option<i64>,
+    pub discount_rate: Option<f64>,
     pub updated_at: chrono::NaiveDateTime,
     pub active_at: Option<chrono::NaiveDateTime>,
 }
@@ -26,7 +26,7 @@ pub enum Relation {}
 impl From<BookMeterBook> for ActiveModel {
     fn from(bookmeter_book: BookMeterBook) -> ActiveModel {
         ActiveModel {
-            bookmeter_id: Set(bookmeter_book.id as i64),
+            bookmeter_id: Set(i64::from(bookmeter_book.id)),
             amazon_url: Set(bookmeter_book.amazon_url),
             kindle_id: Set(None),
             title: Set(bookmeter_book.title),
