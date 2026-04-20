@@ -11,9 +11,9 @@ pub struct Model {
     pub amazon_url: String,
     pub kindle_id: Option<String>,
     pub title: String,
-    pub basis_price: Option<i64>,
-    pub price: Option<i64>,
-    pub discount_rate: Option<f64>,
+    pub basis_price: Option<i32>,
+    pub price: Option<i32>,
+    pub discount_rate: Option<f32>,
     pub updated_at: chrono::NaiveDateTime,
     pub active_at: Option<chrono::NaiveDateTime>,
 }

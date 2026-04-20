@@ -8,7 +8,7 @@ use url::Url;
 pub struct Kindle {
     pub basis_price: u32,
     pub price: u32,
-    pub discount_rate: f64,
+    pub discount_rate: f32,
 }
 
 impl Kindle {
@@ -136,7 +136,12 @@ impl Kindle {
             .unwrap_or(0);
 
         // 割引率の計算
-        let discount_rate = 1.0_f64 - f64::from(price - point) / f64::from(basis_price);
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "discount rate is always within [0, 1]"
+        )]
+        let discount_rate =
+            1.0_f32 - (f64::from(price - point) / f64::from(basis_price)) as f32;
 
         Ok(Kindle {
             basis_price,

@@ -148,8 +148,8 @@ impl BookMeterDiscounts {
                     continue;
                 }
             };
-            book.basis_price = Set(Some(i64::from(kindle.basis_price)));
-            book.price = Set(Some(i64::from(kindle.price)));
+            book.basis_price = Set(Some(i32::try_from(kindle.basis_price)?));
+            book.price = Set(Some(i32::try_from(kindle.price)?));
             book.discount_rate = Set(Some(kindle.discount_rate));
             book.updated_at = Set(chrono::Utc::now().naive_utc());
             book.update(&self.db).await?;
