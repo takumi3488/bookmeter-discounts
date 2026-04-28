@@ -140,8 +140,7 @@ impl Kindle {
             clippy::cast_possible_truncation,
             reason = "discount rate is always within [0, 1]"
         )]
-        let discount_rate =
-            1.0_f32 - (f64::from(price - point) / f64::from(basis_price)) as f32;
+        let discount_rate = 1.0_f32 - (f64::from(price - point) / f64::from(basis_price)) as f32;
 
         Ok(Kindle {
             basis_price,
