@@ -59,8 +59,11 @@ impl BookMeterDiscounts {
             .unwrap_or_else(|_| "1".to_string())
             .parse()?;
         let bookmeter_client = BookMeterClient::new(self.user_id.parse()?);
-        let bookmeter_books = bookmeter_client.get_books(max_page, &self.db).await?;
-        for bookmeter_book in bookmeter_books.clone() {
+        let wishlist_ids = bookmeter_client.fetch_wishlist_ids(max_page).await?;
+        let new_books = bookmeter_client
+            .fetch_new_books(&wishlist_ids, &self.db)
+            .await?;
+        for bookmeter_book in new_books {
             let book = model::ActiveModel::from(bookmeter_book);
             if let Err(e) = Book::insert(book).exec(&self.db).await {
                 error!("{:?}", e);
@@ -68,17 +71,21 @@ impl BookMeterDiscounts {
         }
 
         // 読書メーターから削除済みの本の削除
-        let mut stream = Book::find().stream(&self.db).await?;
-        while let Some(item) = stream.try_next().await? {
-            let book: model::Model = item;
-            let active_book = book.clone().into_active_model();
-            if bookmeter_books
-                .iter()
-                .all(|b| i64::from(b.id) != book.bookmeter_id)
-            {
-                info!("delete book: {}", book.title);
-                active_book.delete(&self.db).await?;
-                self.metrics.record_deleted_book();
+        // ウィッシュリスト取得が空の場合はスクレイピング失敗の可能性があるため、保険として削除をスキップする
+        if !wishlist_ids.is_empty() {
+            let to_delete = Book::find()
+                .filter(model::Column::BookmeterId.is_not_in(wishlist_ids.iter().copied()))
+                .all(&self.db)
+                .await?;
+            if !to_delete.is_empty() {
+                for book in &to_delete {
+                    info!("delete book: {}", book.title);
+                    self.metrics.record_deleted_book();
+                }
+                Book::delete_many()
+                    .filter(model::Column::BookmeterId.is_not_in(wishlist_ids.iter().copied()))
+                    .exec(&self.db)
+                    .await?;
             }
         }
 

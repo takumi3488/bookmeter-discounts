@@ -5,7 +5,7 @@ use crate::model as Book;
 use anyhow::Result;
 use backon::{ExponentialBuilder, Retryable};
 use scraper::{Html, Selector};
-use sea_orm::{DatabaseConnection, EntityTrait};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect};
 use serde::Deserialize;
 use tokio::time::sleep;
 use tracing::{info, warn};
@@ -101,17 +101,12 @@ impl BookMeterClient {
         BookMeterClient { user_id }
     }
 
-    /// 読書メーターの本を全て取得する
+    /// 読書メーターのウィッシュリストにある本IDを全て取得する
     ///
     /// # Errors
     ///
-    /// Returns an error if fetching books or querying the database fails.
-    pub async fn get_books(
-        &self,
-        max_page: u16,
-        db: &DatabaseConnection,
-    ) -> Result<Vec<BookMeterBook>> {
-        // データの取得
+    /// Returns an error if fetching pages fails.
+    pub async fn fetch_wishlist_ids(&self, max_page: u16) -> Result<BTreeSet<i64>> {
         let mut book_ids = BTreeSet::new();
         let mut page = 1;
         while page <= max_page {
@@ -120,31 +115,45 @@ impl BookMeterClient {
             if new_book_ids.is_empty() {
                 break;
             }
-            for new_book_id in new_book_ids {
-                if Book::Entity::find_by_id(i64::from(new_book_id))
-                    .one(db)
-                    .await
-                    .is_ok_and(|response| response.is_none())
-                {
-                    book_ids.insert(new_book_id);
-                }
-            }
+            book_ids.extend(new_book_ids.into_iter().map(i64::from));
             page += 1;
             sleep(Duration::from_secs(1)).await;
         }
+        Ok(book_ids)
+    }
 
-        // idから本の情報を取得
+    /// 与えられたIDのうちDBに未登録のものだけ詳細を取得する
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if querying the database fails or an ID overflows `u32`.
+    pub async fn fetch_new_books(
+        &self,
+        wishlist_ids: &BTreeSet<i64>,
+        db: &DatabaseConnection,
+    ) -> Result<Vec<BookMeterBook>> {
+        if wishlist_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        let existing: BTreeSet<i64> = Book::Entity::find()
+            .filter(Book::Column::BookmeterId.is_in(wishlist_ids.iter().copied()))
+            .select_only()
+            .column(Book::Column::BookmeterId)
+            .into_tuple::<i64>()
+            .all(db)
+            .await?
+            .into_iter()
+            .collect();
+
         let mut book_results = Vec::new();
-        for book_id in book_ids {
+        for &id in wishlist_ids.difference(&existing) {
+            let book_id = u32::try_from(id)?;
             let book = BookMeterBook::from_id(book_id).await;
             info!("got book_meter_book: {:?}", book);
             book_results.push(book);
             sleep(Duration::from_secs(1)).await;
         }
-        Ok(book_results
-            .iter()
-            .filter_map(|book| book.as_ref().ok().cloned())
-            .collect())
+        Ok(book_results.into_iter().filter_map(Result::ok).collect())
     }
 
     /// 読書メーターの本IDをHTMLから取得する
