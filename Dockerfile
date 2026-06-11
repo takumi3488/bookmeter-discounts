@@ -6,7 +6,7 @@ COPY . .
 RUN cargo build --release
 
 
-FROM debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb AS cli
+FROM debian:bookworm-slim@sha256:66117fe525ba266a4d9de1dc238fa9b9d2fe78ff9d0836b8348d133e836f39b5 AS cli
 
 WORKDIR /usr/src/app
 
@@ -18,7 +18,7 @@ COPY --from=builder /usr/src/app/target/release/bookmeter_discounts .
 CMD ["./bookmeter_discounts"]
 
 
-FROM debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb AS server
+FROM debian:bookworm-slim@sha256:66117fe525ba266a4d9de1dc238fa9b9d2fe78ff9d0836b8348d133e836f39b5 AS server
 
 WORKDIR /usr/src/app
 
