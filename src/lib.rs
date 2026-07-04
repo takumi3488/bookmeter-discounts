@@ -53,6 +53,10 @@ impl BookMeterDiscounts {
     /// # Panics
     ///
     /// This function does not panic.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "sequential update steps (fetch, delete, kindle id, price) read clearest inline"
+    )]
     pub async fn update_discounts(&self) -> Result<()> {
         // 読書メーターから本情報の取得
         let max_page = env::var("MAX_PAGE")
@@ -110,24 +114,26 @@ impl BookMeterDiscounts {
                 continue;
             }
             sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
-            let kindle_id = match Kindle::convert_amazon_url_to_kindle_id(&book.amazon_url).await {
-                Ok(id) => id,
-                Err(e) => {
-                    info!(
-                        "error while getting kindle id from {}: {:?}",
-                        book.amazon_url, e
-                    );
-                    if e.to_string().contains("Kindle button not found") {
-                        active_book.active_at = Set(Some(
-                            chrono::Utc::now().naive_utc() + chrono::Duration::days(30),
-                        ));
-                        active_book.updated_at = Set(chrono::Utc::now().naive_utc());
-                        active_book.update(&self.db).await?;
+            let kindle_edition =
+                match Kindle::convert_amazon_url_to_kindle_id(&book.amazon_url).await {
+                    Ok(kindle_edition) => kindle_edition,
+                    Err(e) => {
+                        info!(
+                            "error while getting kindle id from {}: {:?}",
+                            book.amazon_url, e
+                        );
+                        if e.to_string().contains("Kindle button not found") {
+                            active_book.active_at = Set(Some(
+                                chrono::Utc::now().naive_utc() + chrono::Duration::days(30),
+                            ));
+                            active_book.updated_at = Set(chrono::Utc::now().naive_utc());
+                            active_book.update(&self.db).await?;
+                        }
+                        continue;
                     }
-                    continue;
-                }
-            };
-            active_book.kindle_id = Set(Some(kindle_id));
+                };
+            active_book.kindle_id = Set(Some(kindle_edition.kindle_id));
+            active_book.is_kindle_unlimited = Set(Some(kindle_edition.is_kindle_unlimited));
             active_book.updated_at = Set(chrono::Utc::now().naive_utc());
             active_book.update(&self.db).await?;
             self.metrics.record_kindle_id_fetched();
