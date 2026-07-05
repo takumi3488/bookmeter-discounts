@@ -133,7 +133,7 @@ impl BookMeterDiscounts {
                     }
                 };
             active_book.kindle_id = Set(Some(kindle_edition.kindle_id));
-            active_book.is_kindle_unlimited = Set(Some(kindle_edition.is_kindle_unlimited));
+            active_book.is_kindle_unlimited = Set(kindle_edition.is_kindle_unlimited);
             active_book.updated_at = Set(chrono::Utc::now().naive_utc());
             active_book.update(&self.db).await?;
             self.metrics.record_kindle_id_fetched();

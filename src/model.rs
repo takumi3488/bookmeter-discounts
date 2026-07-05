@@ -14,7 +14,7 @@ pub struct Model {
     pub basis_price: Option<i32>,
     pub price: Option<i32>,
     pub discount_rate: Option<f32>,
-    pub is_kindle_unlimited: Option<bool>,
+    pub is_kindle_unlimited: bool,
     pub updated_at: chrono::NaiveDateTime,
     pub active_at: Option<chrono::NaiveDateTime>,
 }
@@ -34,7 +34,7 @@ impl From<BookMeterBook> for ActiveModel {
             basis_price: Set(None),
             price: Set(None),
             discount_rate: Set(None),
-            is_kindle_unlimited: Set(None),
+            is_kindle_unlimited: Set(false),
             updated_at: Set(chrono::Utc::now().naive_utc()),
             active_at: Set(None),
         }
