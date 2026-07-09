@@ -93,9 +93,8 @@ impl BookMeterDiscounts {
             }
         }
 
-        // kindle idの取得
+        // kindle idとKindle Unlimited判定の取得
         let mut stream = Book::find()
-            .filter(model::Column::KindleId.is_null())
             .filter(
                 model::Column::ActiveAt
                     .is_null()
@@ -110,7 +109,7 @@ impl BookMeterDiscounts {
                 .active_at
                 .is_some_and(|active_at| active_at > chrono::Utc::now().naive_utc())
             {
-                info!("skip getting kindle id for {}", book.title,);
+                info!("skip getting kindle edition for {}", book.title,);
                 continue;
             }
             sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
@@ -119,7 +118,7 @@ impl BookMeterDiscounts {
                     Ok(kindle_edition) => kindle_edition,
                     Err(e) => {
                         info!(
-                            "error while getting kindle id from {}: {:?}",
+                            "error while getting kindle edition from {}: {:?}",
                             book.amazon_url, e
                         );
                         if e.to_string().contains("Kindle button not found") {
