@@ -12,8 +12,8 @@ use futures::{Stream, TryStreamExt};
 use kindle::Kindle;
 use model::Entity as Book;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter,
-    QueryOrder, QuerySelect, Set,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, IntoActiveModel,
+    QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use tokio::time::sleep;
 
