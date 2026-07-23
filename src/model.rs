@@ -17,6 +17,8 @@ pub struct Model {
     pub is_kindle_unlimited: bool,
     pub updated_at: chrono::NaiveDateTime,
     pub active_at: Option<chrono::NaiveDateTime>,
+    /// 書籍の形式 (コミック / ライトノベル / 文庫 / 新書 / 単行本 など)
+    pub binding_name: Option<String>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -37,6 +39,7 @@ impl From<BookMeterBook> for ActiveModel {
             is_kindle_unlimited: Set(false),
             updated_at: Set(chrono::Utc::now().naive_utc()),
             active_at: Set(None),
+            binding_name: Set(bookmeter_book.binding_name),
         }
     }
 }

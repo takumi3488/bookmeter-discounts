@@ -12,6 +12,7 @@ pub struct MetricsCollector {
     deleted_books: Counter<u64>,
     kindle_id_fetched: Counter<u64>,
     price_fetched: Counter<u64>,
+    used_book_offer_fetched: Counter<u64>,
 }
 
 impl MetricsCollector {
@@ -33,10 +34,16 @@ impl MetricsCollector {
             .with_description("Number of prices fetched for books with Kindle ID")
             .build();
 
+        let used_book_offer_fetched = meter
+            .u64_counter("bookmeter.used_book_offer_fetched")
+            .with_description("Number of used book offers fetched")
+            .build();
+
         Arc::new(Self {
             deleted_books,
             kindle_id_fetched,
             price_fetched,
+            used_book_offer_fetched,
         })
     }
 
@@ -94,5 +101,10 @@ impl MetricsCollector {
     pub fn record_price_fetched(&self) {
         self.price_fetched
             .add(1, &[KeyValue::new("operation", "fetch_price")]);
+    }
+
+    pub fn record_used_book_offer_fetched(&self, site: &'static str) {
+        self.used_book_offer_fetched
+            .add(1, &[KeyValue::new("site", site)]);
     }
 }

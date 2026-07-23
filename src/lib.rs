@@ -1,13 +1,16 @@
 use std::{env, sync::Arc, time::Duration};
 
 use anyhow::Result;
-use bookmeter::BookMeterClient;
+use bookmeter::{BookMeterBook, BookMeterClient};
 use tracing::{error, info};
 
 mod bookmeter;
+mod isbn;
 mod kindle;
 mod metrics;
 pub mod model;
+pub mod used_book;
+pub mod used_book_offer;
 use futures::{Stream, TryStreamExt};
 use kindle::Kindle;
 use model::Entity as Book;
@@ -16,6 +19,8 @@ use sea_orm::{
     QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use tokio::time::sleep;
+use used_book::UsedBookSite;
+use used_book_offer::Entity as UsedBookOffer;
 
 pub struct BookMeterDiscounts {
     pub user_id: String,
@@ -55,7 +60,7 @@ impl BookMeterDiscounts {
     /// This function does not panic.
     #[expect(
         clippy::too_many_lines,
-        reason = "sequential update steps (fetch, delete, kindle id, price) read clearest inline"
+        reason = "sequential update steps (fetch, delete, kindle id, price, binding name, used book offers) read clearest inline"
     )]
     pub async fn update_discounts(&self) -> Result<()> {
         // 読書メーターから本情報の取得
@@ -168,6 +173,109 @@ impl BookMeterDiscounts {
             self.metrics.record_price_fetched();
         }
 
+        // 書籍の形式 (binding_name) が未取得の本の形式を取得
+        let mut stream = Book::find()
+            .filter(model::Column::BindingName.is_null())
+            .stream(&self.db)
+            .await?;
+        while let Some(item) = stream.try_next().await? {
+            let book: model::Model = item;
+            sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
+            let Ok(bookmeter_id) = u32::try_from(book.bookmeter_id) else {
+                continue;
+            };
+            let binding_name = match BookMeterBook::fetch_binding_name(bookmeter_id).await {
+                Ok(binding_name) => binding_name,
+                Err(e) => {
+                    info!(
+                        "error while getting binding name for {}: {:?}",
+                        book.title, e
+                    );
+                    continue;
+                }
+            };
+            info!("binding name of {}: {:?}", book.title, binding_name);
+            // 形式が取得できなかった場合は NULL のままにし、次回実行時に再取得する
+            let Some(binding_name) = binding_name else {
+                continue;
+            };
+            let mut active_book = book.into_active_model();
+            active_book.binding_name = Set(Some(binding_name));
+            active_book.updated_at = Set(chrono::Utc::now().naive_utc());
+            active_book.update(&self.db).await?;
+        }
+
+        // 漫画・ライトノベル以外の本の中古本オファーを取得
+        let mut stream = Book::find()
+            .filter(model::Column::BindingName.is_not_null())
+            .filter(model::Column::BindingName.is_not_in(["コミック", "ライトノベル"]))
+            .stream(&self.db)
+            .await?;
+        while let Some(item) = stream.try_next().await? {
+            let book: model::Model = item;
+            let isbn13 = match Kindle::convert_amazon_url_to_id(&book.amazon_url)
+                .and_then(|asin| isbn::isbn10_to_isbn13(&asin))
+            {
+                Ok(isbn13) => isbn13,
+                Err(e) => {
+                    info!(
+                        "skip used book offers for {} (invalid ISBN from {}): {:?}",
+                        book.title, book.amazon_url, e
+                    );
+                    continue;
+                }
+            };
+            for site in UsedBookSite::ALL {
+                sleep(Duration::from_secs(self.get_amazon_page_interval)).await;
+                if let Err(e) = self.update_used_book_offer(&book, site, &isbn13).await {
+                    info!(
+                        "error while updating used book offer of {} on {}: {:?}",
+                        book.title,
+                        site.as_str(),
+                        e
+                    );
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// 1冊・1サイト分の中古本オファーを取得してDBに保存する
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the network or database operation fails.
+    pub async fn update_used_book_offer(
+        &self,
+        book: &model::Model,
+        site: UsedBookSite,
+        isbn13: &str,
+    ) -> Result<()> {
+        let existing = UsedBookOffer::find_by_id((book.bookmeter_id, site.as_str().to_string()))
+            .one(&self.db)
+            .await?;
+        let known_product = existing
+            .as_ref()
+            .and_then(|m| m.product_id.as_deref().zip(m.product_url.as_deref()));
+        let update = site.refresh_offer(isbn13, known_product).await?;
+        if let Some(model) = existing {
+            model
+                .into_active_model()
+                .apply_update(&update)
+                .update(&self.db)
+                .await?;
+        } else {
+            // 検索で商品が見つからなかった場合は行を作らず、次回実行時に再検索する
+            if update.product_id.is_none() {
+                return Ok(());
+            }
+            let mut active = used_book_offer::ActiveModel::from(&update);
+            active.bookmeter_id = Set(book.bookmeter_id);
+            active.site = Set(site.as_str().to_string());
+            UsedBookOffer::insert(active).exec(&self.db).await?;
+        }
+        self.metrics.record_used_book_offer_fetched(site.as_str());
         Ok(())
     }
 

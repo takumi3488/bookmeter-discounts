@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html data-csrf-tmp-token="23c18002ff10d3d0" data-csrf-tmp-verifier="86fa94fd026e35aec49d98bc6311526a0890543854472b39f89771445789b98f" xmlsn:og="http://ogp.me/ns#" xmlns:fb="http://ogp.me/ns/fb#" lang="ja">
+<head>
+<meta charset="UTF-8">
+
+<link rel="shortcut icon" href="/favicon.ico?dummy=1674087367" />
+<link rel="stylesheet" type="text/css" href="/css/shopping/used.css" charset="UTF-8" />
+<link rel="stylesheet" type="text/css" href="/publis.css" /><meta name="keywords" content="" />
+<meta name="description" content="【定価74%OFF】中古価格 220円(税込)【638円おトク！】「吾輩は猫である 文春文庫」夏目漱石【著】の中古商品ページです。1,800円以上のご注文で送料無料。本(書籍)、漫画(コミック)、CD、DVD、ゲームなど中古・新品の通販ならブックオフ公式オンラインストア" />
+<title>吾輩は猫である 文春文庫 中古本・書籍 | ブックオフ公式オンラインストア</title>
+<script >
+<!--
+	var pbGlobalAliasBase = '/';
+//-->
+</script>
+<script  src="/public.js"></script>
+<meta name="viewport" content="width=device-width">
+<!--link rel="shortcut icon" href="https://content.bookoffonline.co.jp/favicon.ico"-->
+<link rel="apple-touch-icon" sizes="180x180" href="/library/common/images/apple_touch_icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/library/common/images/webclip_android.png">
+<link rel="stylesheet" href="/library/common/css/common.css?d=20250416">
+<link rel="stylesheet" href="/library/common/css/headerFooter.css">
+<script src="https://content.bookoff.co.jp/files/common/js/jquery-2.2.4.min.js"></script>
+<script src="/library/common/js/vendor.bundle.js"></script>
+<script src="/library/common/js/common.js"></script>
+<script src="/library/common/js/headerFooter.js"></script>
+<!--<link rel="stylesheet" type="text/css" href="/library/common/css/mainContent__product.css" />
+<script  src="/library/common/js/modal-adjust.js"></script>-->
+<link rel="stylesheet" type="text/css" href="https://content.bookoff.co.jp/assets/css/common/items-container.css?rev=20260612" />
+<script  src="https://content.bookoff.co.jp/assets/js/common/plugin/splide.min.js"></script>
+
+<script  src="https://content.bookoff.co.jp/files/common/js/jquery-1.12.4.min.js"></script>
+<script>
+
+	var class_name = 'BocProduct';
+
+$(document).on('click', '.js-ageverification', function(){
+	var type = $(this).attr('data-type') ?? '';
+	var mode = $(this).attr('data-mode') ?? '';
+	var item_id = $(this).attr('data-item') ?? '';
+	var cvName = $(this).attr('data-cv-name') ?? '';
+	var modalBtn = $('#ageVerification__btns--agree');
+
+	if(type == 'cart' || type == 'arrival' || type == 'favorite') {
+		modalBtn.attr('data-mode', mode);
+		modalBtn.attr('data-item', item_id);
+		modalBtn.attr('data-cv-name', cvName);
+
+		if(type == 'cart') {
+			var stockType = $(this).attr('data-stock') ?? '';
+			modalBtn.attr('data-stock', stockType);
+		}
+
+		modalBtn.addClass('jsBtn-' + type);
+		modalBtn.addClass('ac-click-cv');
+	} else {
+		$('#modalAgeVerification > modalContent > js-modalClose').trigger('click');
+	}
+});
+
+	// カートに追加、在庫有りのみカートに追加、巻数を指定してカートに追加する
+	$(document).on('click', '.jsBtn-cart', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		var age_limit = $(this).attr('data-agelimit') ?? '';
+		if (mode == 'disabled') {
+			return false;
+		}
+		if ((mode == 'Add') || (mode == 'AddSet') || (mode == 'AddSetInStock')) {
+			// 在庫有りのみカートに追加の場合、複数回クリック不許可
+			$(this).attr('data-mode', 'disabled');
+		}
+		var ex_param = {};
+		if (mode == 'Add') {
+			ex_param['stockType'] = $(this).attr('data-stock') ?? '';
+		}
+		if (mode == 'AddSelectedItems') {
+			var selectItemIds = {};
+			$('input[type="checkbox"].js-allCheckTarget:checked').each(function(index){
+				selectItemIds[index] = $(this).closest('.productSetItem__checkbox').find('input.item_id').val() ?? '';
+			});
+			ex_param['selectItemIds'] = selectItemIds;
+		}
+		if(age_limit == 1) {
+			ageVerification('cart', mode, item_id, ex_param);
+		} else {
+			ajaxConfig('cart', mode, item_id, ex_param);
+		}
+	});
+	// お気に入り追加・削除
+	$(document).on('click', '.jsBtn-favorite', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		var age_limit = $(this).attr('data-agelimit') ?? '';
+		if(age_limit == 1) {
+			ageVerification('favorite', mode, item_id);
+		} else {
+			ajaxConfig('favorite', mode, item_id);
+		}
+	});
+	// 入荷お知らせ追加・削除、全巻入荷お知らせ追加・削除
+	$(document).on('click', '.jsBtn-arrival', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		var age_limit = $(this).attr('data-agelimit') ?? '';
+		if(age_limit == 1) {
+			ageVerification('arrival', mode, item_id);
+		} else {
+			ajaxConfig('arrival', mode, item_id);
+		}
+	});
+	// 値下げのお知らせ追加・削除
+	$(document).on('click', '.jsBtn-discount', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		var ex_param = {};
+		ex_param['price'] = $(this).attr('data-price') ?? 0;
+
+		if (mode == 'Add_PriceChange' || mode == 'PriceChange'){
+		    ex_param['targetPrice'] = $('#modal #discountAlert input[name="discountAlert"]').val() ?? 0;
+			if (ex_param['targetPrice'] == 0 || ex_param['targetPrice'] == '') {
+				discountModalError('1円以上で入力してください');
+			} else if (parseInt(ex_param['targetPrice']) >=  parseInt(ex_param['price'])) {
+				if (item_id.slice(0, 2) == '88') {
+					discountModalError('定価合計価格より小さい金額を入力してください');
+				} else {
+					discountModalError('中古価格より小さい金額を入力してください');
+				}
+			} else if (!ex_param['targetPrice'].match(/^[0-9]+$/)) {
+				discountModalError('半角数字で入力してください');
+			} else {
+				// 「0」埋めの入力は頭削除して登録
+				if (ex_param['targetPrice'].match(/^0+/)) {
+					ex_param['targetPrice'] = new Intl.NumberFormat('ja-JP').format(ex_param['targetPrice']);
+				}
+				ajaxConfig('discount', mode, item_id, ex_param);
+			}
+		} else if(mode == 'Add') {
+		    ex_param['targetPrice'] = $(this).attr('data-target-price') ?? 0;
+			ajaxConfig('discount', mode, item_id, ex_param);
+		} else if(mode == 'Delete') {
+			ajaxConfig('discount', mode, item_id);
+		}
+	});
+	// 最新刊のお知らせ追加・削除
+	$(document).on('click', '.jsBtn-latests', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		ajaxConfig('latests', mode, item_id);
+	});
+
+	// 在庫ない商品一覧表示確認モーダル
+	$(document).on('click', '.jsBtn-cart-modal', function(event){
+		event.preventDefault();
+		$('#modalSetAddCart ul.modalSetAddCart__list').empty();
+		var item_id = $(this).attr('data-item');
+		ajaxConfig('cart', 'RewriteSetModal', item_id);
+	});
+
+	// 値下げのお知らせ価格設定変更モーダル
+	$(document).on('click', '.jsBtn-discount-modal', function(event){
+		event.preventDefault();
+		var item_id = $(this).attr('data-item') ?? '';
+		var price = $(this).attr('data-price') ?? '';
+		var target_price = $(this).attr('data-target-price') ?? '';
+		var modal = $(this).attr('data-modal') ?? '';
+
+		if (modal = 'discountAlert') {
+			if (class_name == 'BocAlertMailList') {
+				$('#modal #discountAlert .jsBtn-discount').attr('data-item', item_id);
+				$('#modal #discountAlert .jsBtn-discount').attr('data-price', price);
+				$('#modal #discountAlert .jsBtn-discount').attr('data-target-price', target_price);
+
+				if (item_id.slice(0, 2) == '88') {
+					$('.modalConfirm__regularPrice').show();
+				}else {
+					$('.modalConfirm__regularPrice').hide();
+				}
+
+				$('#modal #discountAlert #discount-market-price').text(price.toLocaleString());
+				$('#modal #discountAlert #discount-target-price').text(target_price.toLocaleString());
+			}
+			$('#modal').addClass('-show -visible');
+			$('#modal #discountAlert').addClass('-show');
+
+		} else if (modal = 'discountAlertCancel') {
+			if (class_name == 'BocAlertMailList') {
+				$('#modal #discountAlert .jsBtn-discount').attr('data-item', item_id);
+			}
+			$('#modal').addClass('-show -visible');
+			$('#modal #discountAlertCancel').addClass('-show');
+		}
+	});
+
+	$(document).on('click', '.js-modalClose', function(event){
+		event.preventDefault();
+		if ($('#modal #discountAlert').hasClass('-show')) {
+			initializeDiscountModal();
+		}
+	});
+	$(document).on('click', '.modal__overlay', function(event){
+		if ($('#modal #discountAlert').hasClass('-show')) {
+			initializeDiscountModal();
+		}
+	});
+
+	function initializeDiscountModal () {
+		$('#modal #discountAlert input[name="discountAlert"]').removeClass('-error');
+		$("#modal #discountAlert .modalConfirm__error").hide();
+		$("#modal #discountAlert .modalConfirm__error").text('');
+		$('#modal').removeClass('-show -visible');
+		$('#modal #discountAlert').removeClass('-show');
+		$('#modal #discountAlert input[name="discountAlert"]').val('');
+	}
+
+	function discountModalError (str) {
+		$('#modal #discountAlert input[name="discountAlert"]').addClass('-error');
+		$("#modal #discountAlert .modalConfirm__error").show();
+		$("#modal #discountAlert .modalConfirm__error").text(str);
+	}
+</script><script>
+	function ageVerification(type, mode, item_id, ex_param={}){
+		var send_data = {
+						'className': class_name
+						, 'blockId': 773521
+						, 'pageId': 1247
+						, 'revision': 0
+						, 'type': 'ageVerification'
+						, 'mode': 'Agree'
+						, 'itemId': item_id
+					};
+		ajax_jquery({
+			url: "/view_interface.php",
+			type : "POST",
+			data : send_data,
+			dataType : "json"
+		})
+		.done(function(data, textStatus, jqXHR){
+			if (data.status == 'OK') {
+			// 検索一覧内のボタンをすべて書き換え
+				$('.js-ageverification').each(function() {
+					elmType = $(this).attr('data-type');
+					if (elmType == 'cart') {
+						var btnClass = 'jsBtn-cart';
+					} else if (elmType == 'favorite') {
+						var btnClass = 'jsBtn-favorite';
+					} else if (elmType == 'arrival') {
+						var btnClass = 'jsBtn-arrival';
+					}
+					$(this).addClass(btnClass);
+				});
+				$('.js-ageverification').addClass('ac-click-cv');
+				$('.js-ageverification').removeAttr('data-type');
+				$('.js-ageverification').removeAttr('data-modal');
+				$('.js-ageverification').removeClass('js-modal js-ageverification');
+
+				// モーダルを閉じる
+				$('.modal__inner').removeClass('-show');
+				$('#modal').removeClass('-visible -show');
+				$('body').removeClass('-modalOpen');
+				$('html').removeAttr('data-whatelement data-whatclasses');
+				// モーダルのDOM要素を削除
+				$('[id^="modalAgeVerification"]').remove();
+				// ajaxConfig 実行
+				ajaxConfig(type, mode, item_id, ex_param);
+			} else if (data.status == 'FAILED_AGE_VERIFICATION') {
+				var errMsg = 'エラーにより年齢認証が完了出来ませんでした。';
+				$('.ageVerificationBlock__txt--error').text(errMsg);
+				$('.ageVerificationBlock__txt--error').show();
+				return false;
+			} else {
+				var errMsg = 'エラーにより年齢認証が完了出来ませんでした。';
+				$('.ageVerificationBlock__txt--error').text(errMsg);
+				$('.ageVerificationBlock__txt--error').show();
+				return false;
+			}
+		})
+		.fail(function(jqXHR, textStatus, errorThrown){
+			var errMsg = 'エラーにより年齢認証が完了出来ませんでした。';
+			$('.ageVerificationBlock__txt--error').text(errMsg);
+			$('.ageVerificationBlock__txt--error').show();
+			return false;
+		});
+	}
+
+	function ajaxConfig(type, mode, item_id, ex_param={}){
+		var send_data = {
+						'className': class_name
+						, 'blockId': 773521
+						, 'pageId': 1247
+						, 'revision': 0
+						, 'type': type
+						, 'mode': mode
+						, 'itemId': item_id
+						, 'exParam' : ex_param
+					};
+
+		ajax_jquery({
+			url: "/view_interface.php",
+			type : "POST",
+			data : send_data,
+			dataType : "json"
+		})
+		.done(function(data, textStatus, jqXHR){
+			if (data.status == 'OK') {
+				// カートに追加
+				if (type == 'cart') {
+					thisId = '.jsBtn-cart[data-item="' + item_id + '"]';
+					thisItemBtnId = '.jsBtn-cart-modal[data-item="' + item_id + '"]';
+
+					if (mode == 'AddSet' || mode == 'AddSelectedItems') {
+						if (class_name == 'BocProductSet') {
+							var checkNum = 0;
+							$('.js-allCheckTarget').each(function(){
+								if ($(this).prop('checked')) {
+									checkNum++;
+								}
+							});
+							if (checkNum == 0) {
+								window.location.href = '/cart/';
+							}
+						}
+					}
+
+					if (mode == 'Add' || mode == 'AddSet' || mode == 'AddSelectedItems') {
+						if (class_name == 'BocRankingOfWeekList' || class_name == 'BocProduct' || class_name == 'BocProductSet') {
+							window.location.href = '/cart/';
+						} else if (class_name == 'BocSearchResult') {
+							// カートを見るボタンに変更
+							sourceObj = $(thisId);
+							targetObj = $('<a>');
+							sourceObj.removeClass('jsBtn-cart');
+							sourceObj.addClass('-added');
+							targetObj.attr('href', '/cart/');
+							targetObj.text(' カートを見る ');
+							$.each(sourceObj[0].attributes, function() {
+								targetObj.attr(this.name, this.value);
+							});
+							sourceObj.replaceWith(targetObj);
+						} else {
+							$(thisId).attr('href', '/cart/');
+							$(thisId).addClass('-added');
+							$(thisId).text(' カートを見る ');
+							$(thisId).removeClass('jsBtn-cart');
+						}
+					} else if (mode == 'AddSetInStock') {
+						if (class_name == 'BocRankingOfWeekList') {
+							window.location.href = '/cart/';
+						} else if (class_name == 'BocSetSearchResult') {
+							$(thisItemBtnId).addClass('-added');
+							$(thisItemBtnId).text(' カートを見る ');
+							$(thisItemBtnId).attr('data-modal', '');
+							$(thisItemBtnId).attr('data-mode', '');
+							$(thisItemBtnId).off('click');
+							$(thisItemBtnId).attr('href', '/cart/');
+							$(thisItemBtnId).removeClass('jsBtn-cart-modal btn--2l js-modal');
+							// モーダルを閉じる
+							$('.modal__overlay').trigger('click');
+						}
+					} else if (mode == 'RewriteSetModal') {
+						$('#modalSetAddCart .jsBtn-cart').attr('data-item', item_id).attr('data-mode', 'AddSetInStock');
+						$('#modalSetAddCart .modal__title span').text(data.stock_count);
+						for (var i in data.no_stock_items) {
+							var liText = '<li class="modalSetAddCart__item">' + data.no_stock_items[i].item_name + '</li>';
+							$('#modalSetAddCart ul.modalSetAddCart__list').append(liText);
+						}
+						$('#modalSetAddCart .js-modalInnerContent').css('height','500px');
+					}
+				}
+				// お気に入り
+				if (type == 'favorite') {
+					thisId = '.jsBtn-favorite[data-item="' + item_id + '"]';
+					if (mode == 'Add') {
+						if (data.message) {
+							click_ele = $(thisId);
+							displayTooltip(click_ele, type, data.message);
+						}
+						$(thisId + ' span:first-of-type').removeClass('icon-favorite icon-favorite-dims');
+						$(thisId + ' span:first-of-type').addClass('icon-favorite-on icon-favorite-on-dims');
+						if (class_name == 'BocProduct') { // SPのみ
+							$('.forSp > ' + thisId).removeClass('icon-favorite icon-favorite-dims');
+							$('.forSp > ' + thisId).addClass('icon-favorite-on icon-favorite-on-dims');
+						}
+						$(thisId + ' span:nth-of-type(2)').text('お気に入り追加済');
+						$(thisId).attr('data-mode', 'Delete');
+						if (class_name == 'BocSearchResult') {
+							$(thisId).attr('data-cv-name', 'delBookmark_Search');
+						} else if (class_name == 'BocSetSearchResult') {
+							$(thisId).attr('data-cv-name', 'delSetMail_Search');
+						} else if (class_name == 'BocProduct') {
+							$(thisId).attr('data-cv-name', 'delBookmark_Detail');
+						}
+					}
+					if (mode == 'Delete') {
+						$(thisId + ' span:first-of-type').removeClass('icon-favorite-on icon-favorite-on-dims');
+						$(thisId + ' span:first-of-type').addClass('icon-favorite icon-favorite-dims');
+						if (class_name == 'BocProduct') { // SPのみ
+							$('.forSp > ' + thisId).removeClass('icon-favorite-on icon-favorite-on-dims');
+							$('.forSp > ' + thisId).addClass('icon-favorite icon-favorite-dims');
+						}
+						$(thisId + ' span:nth-of-type(2)').text('お気に入り追加');
+						$(thisId).attr('data-mode', 'Add');
+						if (class_name == 'BocSearchResult') {
+							$(thisId).attr('data-cv-name', 'addBookmark_Search');
+						} else if (class_name == 'BocSetSearchResult') {
+							$(thisId).attr('data-cv-name', 'addSetMail_Search');
+						} else if (class_name == 'BocProduct') {
+							$(thisId).attr('data-cv-name', 'addBookmark_Detail');
+						}
+					}
+				}
+				// 入荷お知らせ
+				if (type == 'arrival') {
+					thisId = '.jsBtn-arrival[data-item="' + item_id + '"]';
+					if (mode == 'Add' || mode == 'AddSet') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--gray');
+							$(thisId).addClass('btn--blue');
+							$(thisId).text(' 解除する ');
+							$(thisId).attr('data-mode', 'Delete');
+						} else {
+							if (data.message) {
+								click_ele = $(thisId);
+								displayTooltip(click_ele, type, data.message);
+							}
+							$(thisId).addClass('-added');
+							if (class_name == 'BocProduct' || class_name == 'BocProductSet') {
+								$(thisId).text('入荷お知らせを解除する');
+								$(thisId).attr('data-mode', 'Delete');
+							} else if (mode == 'AddSet') {
+								$(thisId).text('登録を解除する');
+								$(thisId).attr('data-mode', 'DeleteSet');
+							} else if (mode == 'Add') {
+								$(thisId).text('登録を解除する');
+								$(thisId).attr('data-mode', 'Delete');
+							}
+							if (class_name == 'BocSearchResult') {
+								$(thisId).attr('data-cv-name', 'delAlertMail_Search');
+							} else if (class_name == 'BocSetSearchResult') {
+								$(thisId).attr('data-cv-name', 'delSetMail_Search');
+							} else if (class_name == 'BocProduct') {
+								$(thisId).attr('data-cv-name', 'delAlertlMail_Detail');
+							} else if (class_name == 'BocProductSet') {
+								$(thisId).attr('data-cv-name', 'delSetMail_Detail');
+							} else if (class_name == 'BocRankingOfWeekList') {
+								$(thisId).attr('data-cv-name', 'delSetMail_Ranking');
+							}
+						}
+					} else if (mode == 'Delete' || mode == 'DeleteSet') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--blue');
+							$(thisId).addClass('btn--gray');
+							$(thisId).text(' 再設定 ');
+							$(thisId).attr('data-mode', 'Add');
+						} else {
+							$(thisId).removeClass('-added');
+							if (class_name == 'BocProduct' || class_name == 'BocProductSet') {
+								$(thisId).text('入荷のお知らせを受け取る');
+								$(thisId).attr('data-mode', 'Add');
+							} else if (mode == 'DeleteSet') {
+								$(thisId).text('全巻入荷お知らせ');
+								$(thisId).attr('data-mode', 'AddSet');
+							} else if (mode == 'Delete') {
+								$(thisId).text('入荷お知らせ');
+								$(thisId).attr('data-mode', 'Add');
+							}
+							if (class_name == 'BocSearchResult') {
+								$(thisId).attr('data-cv-name', 'addAlertlMail_Search');
+							} else if (class_name == 'BocSetSearchResult') {
+								$(thisId).attr('data-cv-name', 'addSetMail_Search');
+							} else if (class_name == 'BocProduct') {
+								$(thisId).attr('data-cv-name', 'addAlertlMail_Detail');
+							} else if (class_name == 'BocProductSet') {
+								$(thisId).attr('data-cv-name', 'addSetMail_Detail');
+							} else if (class_name == 'BocRankingOfWeekList') {
+								$(thisId).attr('data-cv-name', 'addSetMail_Ranking');
+							}
+						}
+					}
+				}
+				// 値下げお知らせ
+				if (type == 'discount') {
+					thisId = '.jsBtn-discount[data-item="' + item_id + '"]';
+					thisItemBtnId = '.jsBtn-discount-modal[data-item="' + item_id + '"]';
+					if (mode == 'Add') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--gray');
+							$(thisId).addClass('btn--blue');
+							$(thisId).text(' 解除する ');
+							$(thisId).attr('data-mode', 'Delete');
+						}
+					}
+					if (mode == 'PriceChange') {
+						if (class_name == 'BocAlertMailList') {
+							initializeDiscountModal();
+							$('#modal #discountAlert .jsBtn-discount').attr('data-item', '');
+							$('#modal #discountAlert .jsBtn-discount').attr('data-price', '');
+							var thisItemBtnId = '.jsBtn-discount-modal[data-item="' + item_id + '"]';
+							var targetPrice = ex_param['targetPrice'];
+							$(thisItemBtnId).attr('data-target-price', targetPrice);
+							$('#discount-target-price-' + item_id).text(targetPrice.toLocaleString());
+						}
+					}
+					if (mode == 'Add_PriceChange') {
+						if (class_name == 'BocProduct' || class_name == 'BocProductSet') {
+							$(thisItemBtnId + ' span:nth-of-type(2)').text('値下げのお知らせを登録済');
+							$(thisItemBtnId).attr('data-modal','discountAlertCancel');
+							$(thisItemBtnId).attr('data-mode', 'Delete');
+							// モーダルを閉じる
+							initializeDiscountModal();
+							if (class_name == 'BocProductSet') {
+								$(thisItemBtnId).attr('data-cv-name', 'delSetMailPriceDown_Detail');
+							}
+						}
+					}
+					if (mode == 'Delete') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--blue');
+							$(thisId).addClass('btn--gray');
+							$(thisId).text(' 再設定 ');
+							$(thisId).attr('data-mode', 'Add');
+						} else if (class_name == 'BocProduct' || class_name == 'BocProductSet') {
+							$(thisItemBtnId + ' span:nth-of-type(2)').text('値下げのお知らせを受け取る');
+							$(thisItemBtnId).attr('data-modal','discountAlert');
+							$(thisItemBtnId).attr('data-mode', 'Add');
+							// モーダルを閉じる
+							$('#modal').removeClass('-show -visible');
+							$('#modal #discountAlertCancel').removeClass('-show');
+							if (class_name == 'BocProductSet') {
+								$(thisItemBtnId).attr('data-cv-name', 'addSetMailPriceDown_Detail');
+							}
+						}
+					}
+				}
+				// 最新刊お知らせ
+				if (type == 'latests') {
+					thisId = '.jsBtn-latests[data-item="' + item_id + '"]';
+					if (mode == 'Add') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--gray');
+							$(thisId).addClass('btn--blue');
+							$(thisId).text(' 解除する ');
+							$(thisId).attr('data-mode', 'Delete');
+						} else {
+							$(thisId + ' span:nth-of-type(2)').text('最新刊のお知らせを登録済');
+							$(thisId).attr('data-mode', 'Delete');
+							if (class_name == 'BocProductSet') {
+								$(thisId).attr('data-cv-name', 'delNewAlertMail_Detail');
+							}
+						}
+					} else if (mode == 'Delete') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--blue');
+							$(thisId).addClass('btn--gray');
+							$(thisId).text(' 再設定 ');
+							$(thisId).attr('data-mode', 'Add');
+						} else {
+							$(thisId + ' span:nth-of-type(2)').text('最新刊のお知らせを受け取る');
+							$(thisId).attr('data-mode', 'Add');
+							if (class_name == 'BocProductSet') {
+								$(thisId).attr('data-cv-name', 'addNewAlertMail_Detail');
+							}
+						}
+					}
+				}
+			// 在庫なし、もしくは、何らかの原因でカート未追加
+			} else if (data.status == 'NO_STOCK' || data.status == 'FAILED_TO_CART') {
+				if (type == 'cart') {
+					// 他のモーダル開いてたら閉じる
+					if ($('.js-modalInner').hasClass('-show')) {
+						$('#modal').removeClass('-show -visible');
+						$('.js-modalInner').removeClass('-show');
+					}
+					// カートに追加できませんでしたモーダルを開く
+					if($('#modalCartAddStock0').length){
+						if (data.status == 'NO_STOCK' || data.error_code == 'OC456') {
+							$('#modalCartAddStock0 .js-cart-alert').text('在庫がなくなったため、商品をカートに追加できませんでした。再読み込みしてページを更新します');
+						} else {
+							$('#modalCartAddStock0 .js-cart-alert').text('現在お取り扱いのない商品が含まれるため、カートに追加できませんでした。再読み込みしてページを更新します');
+						}
+						$('[data-modal="modalCartAddStock0"]').trigger("click");
+					}
+					// disabledにしたカートボタンを元に戻す
+					if ((mode == 'Add') || (mode == 'AddSet') || (mode == 'AddSetInStock')) {
+						thisId = '.jsBtn-cart[data-item="' + item_id + '"]';
+						if($(thisId).attr('data-mode') == 'disabled') {
+							$(thisId).attr('data-mode', mode);
+						}
+					}
+				}
+			// 何らかの原因で処理未完了
+			} else if (data.status == 'NG') {
+				if (type == 'favorite') {
+					if (mode == 'Add') {
+						if (data.message) {
+							click_ele = $('.jsBtn-favorite[data-item="' + item_id + '"]');
+							displayTooltip(click_ele, type, data.message);
+						}
+					}
+				}
+			// 未ログインもしくはAPIエラー
+			} else if (data.status == 'NO_LOGIN' || data.status == 'API_ERROR') {
+				window.location.href = data.url;
+			} else {
+				alert("エラーが発生しました。もう一度設定してください。");
+			}
+		})
+		.fail(function(jqXHR, textStatus, errorThrown){
+			alert("エラーが発生しました。");
+		});
+	}
+
+	function displayTooltip(click_ele_selector, btnType, message) {
+		var display_time = 2500;
+		var click_ele = $(click_ele_selector);
+		var original_width = click_ele.outerWidth();
+		// wrap
+		if(!click_ele.parent().hasClass('tipsBalloonArea')){
+			click_ele.each(function() {
+				var self = jQuery(this);
+				var area = jQuery('<div class="tipsBalloonArea"></div>').css({
+					'width': '100%',
+					'margin': self.css('margin'),
+					'margin-bottom': '0'
+				});
+				self.wrap(area);
+			});
+		}
+		// ツールチップHTML
+		var html = '';
+		var isProductPage = !click_ele.hasClass('productItem__favorite');
+		if (isProductPage) {
+			click_ele.parent().addClass('tipsBalloonAreaProductPage');
+			html = '<div class="tipsBalloon tipsBalloon--favorite tipsBalloonFavoriteProductPage"><span class="tipsBalloonTxt">' + message + '</span></div>';
+		} else if (btnType === 'favorite'){
+			html = '<div class="tipsBalloon tipsBalloon--favorite"><span class="tipsBalloonTxt">' + message + '</span></div>';
+		} else if(btnType === 'arrival') {
+			html = '<div class="tipsBalloon tipsBalloon--tail-center"><span class="tipsBalloonTxt">' + message + '</span></div>';
+		}
+		// ツールチップ生成・幅設定・表示
+		var tooltip_ele = $(html).insertBefore(click_ele).hide();
+		if(btnType == 'arrival'){
+			// 入荷お知らせの時のみ調整
+			click_ele.closest('.tipsBalloonArea').each(function() {
+				var self = $(this);
+				if (self.parent().hasClass('cartFloat__btn')) {
+					self.css('position', 'unset');
+				}
+				self.children('.tipsBalloon').css({
+					'min-width': self.children('.jsBtn-arrival').outerWidth(),
+					'bottom': self.children('.jsBtn-arrival').outerHeight() * 1.5,
+					'right': 'unset'
+				});
+			});
+		}
+		tooltip_ele.show();
+		setTimeout(function() {
+			tooltip_ele.fadeOut(200);
+			tooltip_ele.remove();
+			// unwrap
+			if(click_ele.parent().hasClass('tipsBalloonArea')){
+				click_ele.unwrap();
+			}
+		}, display_time);
+	}
+</script>		<script >
+		$(function() {
+			// 商品が入荷した店舗モーダル　絞り込み
+			$('#modalStoreInformation select').change(function() {
+				var prefecture,city;
+				var prefectureObj = $('select[name="prefecture"]');
+				var cityObj = $('select[name="city"]');
+				prefecture = prefectureObj.val();
+				city = cityObj.val();
+
+				if ($(this).attr('name') == 'prefecture'){
+					// 都道府県のselectの場合、市区町村のselectは未選択状態に
+					city = -1;
+				} else if (city != -1){
+					// 市区町村のselectの場合で未選択でない場合、cityから都道府県を取得（都道府県と市区町村の整合性を保つ為）※city={都道府県}-{市区町村}
+					prefecture = city.split('-')[0];
+				}
+
+				// それぞれのselectを選択
+				prefectureObj.val(prefecture);
+				cityObj.val(city);
+
+				// 選択された都道府県の市区町村のselect、それぞれの店舗の表示・非表示を制御
+				prefectureObj.add(cityObj).addClass('-empty');
+				cityObj.find('option').show();
+				$('#modalStoreInformation .modalStoreInformation__list li').show();
+				if (prefecture != -1){
+					prefectureObj.removeClass('-empty');
+					cityObj.find('option:not(.pref_'+prefecture+')').hide();
+					$('#modalStoreInformation .modalStoreInformation__list li:not(.pref_'+prefecture+')').hide();
+				}
+				cityObj.find('option[value="-1"]').show();
+				if (city != -1){
+					cityObj.removeClass('-empty');
+					$('#modalStoreInformation .modalStoreInformation__list li:not(.city_'+ city.split('-')[1] +')').hide();
+				}
+			});
+
+		});
+		</script>
+																
+<script type="application/ld+json">
+{
+	"@context": "https://schema.org/",
+	"@type": "Product",
+	"name": "吾輩は猫である 文春文庫",
+	"@id": "https://shopping.bookoff.co.jp/used/0016731582",
+	"url": "https://shopping.bookoff.co.jp/used/0016731582",
+	"image": [
+		"https://content.bookoff.co.jp/goodsimages/LL/001673/0016731582LL.jpg",
+		"https://content.bookoff.co.jp/goodsimages/L/001673/0016731582L.jpg"
+	],
+	"gtin13": "9784167158057",
+	"brand": {
+		"@type": "Brand",
+		"name": "文藝春秋"
+	},
+	"aggregateRating": {
+		"@type": "AggregateRating",
+		"ratingValue": 3.7,
+		"reviewCount": 18
+	},
+	"offers": [
+		{
+			"@type": "Offer",
+			"url": "https://shopping.bookoff.co.jp/used/0016731582",
+			"priceCurrency": "JPY",
+			"price": 220,
+			"itemCondition": "https://schema.org/UsedCondition",
+			"availability": "https://schema.org/OutOfStock"
+		}
+	],
+	"author": [
+		{
+			"@type": "Person",
+			"name": "夏目漱石"
+		}
+	],
+	"workExample": [
+		{
+			"@type": "Book",
+			"@id": "https://shopping.bookoff.co.jp/used/0016731582",
+			"gtin13": "9784167158057",
+			"bookFormat": "https://schema.org/Paperback",
+			"inLanguage": "ja",
+			"potentialAction": {
+				"@type": "ReadAction",
+				"target": {
+					"@type": "EntryPoint",
+					"urlTemplate": "https://shopping.bookoff.co.jp/cart/",
+					"actionPlatform": [
+						"https://schema.org/DesktopWebPlatform",
+						"https://schema.org/AndroidPlatform",
+						"https://schema.org/IOSPlatform"
+					]
+				}
+			}
+		}
+	]
+}
+</script>
+
+<script src="/library/common/js/detail/notice-display.js"></script>
+
+<script >
+window.headerMenuInfo = window.headerMenuInfo || {
+	pageId: "1247",
+	blockId: "751263"
+};
+</script>
+<script >
+const _boud={};
+</script>
+<meta property="og:site_name" content="ブックオフ公式オンラインストア" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://content.bookoff.co.jp/goodsimages/LL/001673/0016731582LL.jpg" />
+<meta property="og:title" content="吾輩は猫である 文春文庫 中古本・書籍 | ブックオフ公式オンラインストア" />
+<meta property="og:description" content="【定価74%OFF】中古価格 220円(税込)【638円おトク！】「吾輩は猫である 文春文庫」夏目漱石【著】の中古商品ページです。1,800円以上のご注文で送料無料。本(書籍)、漫画(コミック)、CD、DVD、ゲームなど中古・新品の通販ならブックオフ公式オンラインストア" />
+<meta property="og:url" content="https://shopping.bookoff.co.jp/used/0016731582" />
+<link rel="canonical" href="https://shopping.bookoff.co.jp/used/0016731582">
+
+<script>const _isLogin = false;const _isApp=(function(){const uaList='BookoffApp';const userAgent=navigator.userAgent;return userAgent.includes(uaList)})();</script>
+<link rel="stylesheet" type="text/css" href="/library/init/css/publis4-default.css" />
+<link rel="stylesheet" type="text/css" href="/library/common/css/mainContent__product.css" />
+<script  src="/library/common/js/modal-adjust.js"></script>
+<script  src="https://content.bookoff.co.jp/js/roc/csrf_tmp.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://content.bookoff.co.jp/assets/css/common/detail.css?rev=20260423" />
+<script  src="https://content.bookoff.co.jp/assets/js/common/detail.js?rev=20260707"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/common/item-view-history-save.js"></script>
+<link rel="stylesheet" type="text/css" href="" />
+</head>
+<body>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-T8MGMLD');</script>
+<!-- End Google Tag Manager -->
+<script src="https://d.adlpo.com/687/2212/js/smartadlpo.js"></script>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T8MGMLD" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<noscript><p>このページではjavascriptを使用しています。</p></noscript>
+<div id="page" class="pbPage">
+<div id="headerArea" class="pbHeaderArea">
+	<div id="area1" class="pbArea ">
+		<div class="pbNested " >
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock7841">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock162219">
+						
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock162220">
+						<style >
+/* 宅配買取ボタン */
+/* common.css */
+.header__menuSell.sellBtn {
+  display: block;
+  padding: 3px 20px;
+  background-color: #fff000;
+  border: 1px solid #fff000;
+  border-radius: 99px;
+  color: #003894;
+  font-weight: bold;
+  font-size: 16px;
+}
+.header__menuSell {
+  margin-left: 8px;
+}
+/* headerFooter.css */
+.header__menu ul {
+  align-items: center;
+}
+</style>
+<div class="header js-header" id="header">
+  <div class="header__wrap js-headerFixed" style="">
+    <div class="header__inner">
+      <div class="header__logoWrap js-headerLogo">
+
+        <div class="header__logo">
+          <a href="/" class="header__logo__img">
+            <img src="/library/common/images/img-logo.png" alt="BOOKOFF">
+          </a>
+          <div class="header__logo__more">
+            <a class="js-headerLogoBtn" href="/"></a>
+          </div>
+        </div>
+        <div class="header__logoContent js-headerLogoContent">
+          <div class="header__logoContentUserGuide">
+            <a href="https://support-online.bookoff.co.jp">ヘルプ・ご質問</a>
+          </div>
+          <div class="header__logoContentHeader">
+            <a href="https://www.bookoff.co.jp/">BOOKOFF公式サイト</a>
+          </div>
+          <ul>
+            <li>
+              <a href="https://www.bookoff.co.jp/shop/" class="header__linkStore">店舗検索</a>
+            </li>
+            <li>
+              <a href="https://sell.bookoff.co.jp/" class="header__linkPurchase">買取はこちら</a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+      <nav class="header__navi">
+        <div class="header__naviTop">
+          <div class="header__search js-headerSearch">
+            <div class="header__searchInner">
+              <form name="zsForm" id="zsSearchForm" class="header__searchForm">
+                <input id="zsSearchFormInput" type="search" enterkeyhint="search" name="kw_sn" placeholder="キーワード・品番で検索" autocomplete="off" class="zs-search-input" id="zsSearchFormInput">
+                <span class="header__searchIcon">
+                  <img src="/library/common/svg/search-gray.svg" alt="">
+                </span>
+                <span class="header__searchFormClear">
+                  <img src="/library/common/svg/search-clear.svg" alt="" id="zsSearchClearButton">
+                </span>
+              </form>
+              <div class="header__searchHistory" id="zsHistoryArea">
+                <div class="header__searchHistoryHeading">検索履歴</div>
+                <ul class="js-searchHistory" id="zsSearchHistoryAreaUl">
+                  <li>
+                  </li>
+                </ul>
+              </div>
+              <!-- /header__searchHistory -->
+              <div class="header__searchSuggest" id="zsSuggestDiv">
+                <ul class="js-searchSuggest">
+                  <li>
+                  </li>
+                </ul>
+              </div>
+              <!-- /header__searchSuggest -->
+            </div>
+          </div>
+          <div class="header__menu">
+                        <ul>
+                <li>
+                  <a class="header__menuSell sellBtn" href="https://sell.bookoff.co.jp/">宅配買取</a>
+                </li>
+                <li>
+                    <a href="https://my.bookoff.co.jp/wishlist"><img src="/library/common/svg/favorite-blue.svg" alt=""></a>
+                </li>
+                <li>
+                    <div class="header__menuAccount js-headerAccount">
+                        <a href="/" class=" js-headerAccountBtn"><img src="/library/common/svg/account.svg" alt=""></a>
+                        <div class="header__menuAccountContent js-headerAccountContent">
+                                                            <div class="header__loginBtn">
+                                    <ul>
+                                        <li><a class="btn btn--blue" href="https://my.bookoff.co.jp/login">ログイン</a></li>
+                                        <li><a class="btn btn--orange" href="https://my.bookoff.co.jp/register/entry">新規会員登録</a></li>
+                                    </ul>
+                                </div>
+                                                    </div>
+                    </div>
+                </li>
+                <li>
+                    <a href="/cart" ><img src="/library/common/svg/cart.svg" alt="Cart"></a>
+                </li>
+            </ul>
+                      </div>
+        </div>
+        <div class="header__category js-headerCategory">
+          <ul>
+            <li><a href="/book">書籍</a></li>
+            <li><a href="/comic">コミック</a></li>
+            <li><a href="/cd">CD</a></li>
+            <li><a href="/dvdbd">DVD・ブルーレイ</a></li>
+            <li><a href="/game">ゲーム</a></li>
+            <li><a href="/set">セット・まとめ買い</a></li>
+          </ul>
+        </div>
+      </nav>
+
+            <div class="header__naviSp">
+        <div class="header__naviTopSp">
+          <div class="header__menuBtnSp js-spMenuBtn">
+            <img src="/library/common/svg/menu.svg" alt="メニュー">
+          </div>
+          <div class="header__menuSp">
+            <a href="https://my.bookoff.co.jp/wishlist"><img src="/library/common/svg/favorite-blue.svg" alt=""></a>
+            <a href="/cart" ><img src="/library/common/svg/cart.svg" alt=""></a>
+          </div>
+        </div>
+      </div>
+      
+    </div><!-- /header__inner -->
+  </div><!-- /header__wrap -->
+</div><!-- /header js-header -->
+
+<div class="spHeaderMenu js-spHeaderMenu">
+  <div class="spHeaderMenu__close">
+    <span class="js-spHeaderMenuClose" tabindex="0">
+      <img src="/library/common/svg/close.svg" alt="close">
+    </span>
+  </div>
+  <div class="spHeaderMenu__inner">
+
+        <div class="spHeaderMenu__loginBtn">
+        <ul>
+            <li><a class="btn btn--blue" href="https://my.bookoff.co.jp/login">ログイン</a></li>
+            <li><a class="btn btn--orange" href="https://my.bookoff.co.jp/register/entry">新規会員登録</a></li>
+        </ul>
+    </div>
+    
+    <div class="spHeaderMenu__heading">カテゴリ</div>
+    <div class="spHeaderMenu__list">
+      <ul>
+        <li><a href="/book">書籍</a></li>
+        <li><a href="/comic">コミック</a></li>
+        <li><a href="/cd">CD</a></li>
+        <li><a href="/dvdbd">DVD・ブルーレイ</a></li>
+        <li><a href="/game">ゲーム</a></li>
+        <li><a href="/set">セット・まとめ買い</a></li>
+      </ul>
+    </div>
+    <div class="spHeaderMenu__list">
+      <ul class="spHeaderMenu__listUserGuide">
+      <li><a href="https://support-online.bookoff.co.jp">ヘルプ・ご質問</a></li>
+      </ul>
+    </div>
+    <a class="spHeaderMenu__linkStore" href="https://www.bookoff.co.jp/">BOOKOFF公式サイト</a>
+    <a class="spHeaderMenu__linkSearch" href="https://www.bookoff.co.jp/shop/">店舗検索</a>
+    <a class="spHeaderMenu__linkPurchase" href="https://sell.bookoff.co.jp/">買取はこちら</a>
+  </div>
+</div>
+<div class="spHeaderMenuOverlay js-spHeaderMenuClose">&nbsp;</div>
+<script >
+$(document).ready(function () {
+	$('.logout-link').on('click', function() {
+		const logoutUrl="https://my.bookoff.co.jp/logout";
+		ajax_jquery(logoutUrl)
+		.done(function() {
+			const loginUrl="https://my.bookoff.co.jp/login";
+			window.location.href=loginUrl;
+		})
+		.fail(function(e) {
+			let errUrl="/err/404";
+			switch(true){
+				case e.status==502:
+					errUrl="/err/408";
+					break;
+				case e.status>=500:
+					errUrl="/err/500";
+					break;
+			}
+			window.location.href=errUrl;
+		});
+	});
+});
+
+  // point
+  window.loadPoint = function() {
+    const send_data = {
+      "className": "BocHeaderMenu",
+      "blockId": window.headerMenuInfo.blockId,
+      "pageId": window.headerMenuInfo.pageId,
+      "revision": 0,
+      "type": "loadPoint"
+    };
+    ajax_jquery({
+      url: "/view_interface.php",
+      type: "POST",
+      data: send_data,
+      dataType: "json"
+    })
+    .done(function(data, textStatus, jqXHR) {
+      document.querySelectorAll("div.js-headerAccountContent .header__point,div.js-spHeaderMenu .spHeaderMenu__point")
+        .forEach(el => {
+          el.innerHTML = (data.point || "-") + "<span>P</span>";
+        });
+    });
+  }
+</script>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock7842">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock145581">
+						<div class="headerMessage">
+    	<div class="headerMessage__text">1,800円以上の注文で<span class="headerMessage__textDecoration">送料無料</span></div>
+  </div>
+			</div>
+		</div>
+
+			</div>
+		</div>
+	</div>
+
+</div><div id="areaWrapper1" class="pbAreaWrapper1"><div id="areaWrapper2" class="pbAreaWrapper2"><div id="mainArea" class="pbMainArea">
+	<div id="area0" class="pbArea ">
+		<div class="pbNested " >
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock259237">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock435867">
+						<div class="commonBnr">
+  <div class="commonBnr__inner">
+          <a href="https://shopping.bookoff.co.jp/campaign/19th"  class="commonBnr__link ">
+      <figure class="commonBnr__fig">
+                    <img src="https://content.bookoff.co.jp/assets/images/1200x60/campaign/19th.webp" alt="オンラインストア19周年記念キャンペーン お得なクーポンプレゼント！8月1日(土)まで" width="2400" height="120" title="オンラインストア19周年記念キャンペーン お得なクーポンプレゼント！8月1日(土)まで" class="forPc">
+                            <img src="https://content.bookoff.co.jp/assets/images/375x60/campaign/19th.webp" alt="オンラインストア19周年記念キャンペーン お得なクーポンプレゼント！8月1日(土)まで" width="750" height="120" title="オンラインストア19周年記念キャンペーン お得なクーポンプレゼント！8月1日(土)まで" class="forSp">
+              </figure>
+    </a>
+        </div>
+</div>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock275661">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock314591">
+						<div class="campaign campaign--for2col forPc">
+  <div class="campaign__inner">
+          <a class="campaign__items" href="https://shopping.bookoff.co.jp/campaign/20260710-sale">
+      <div class="campaign__item">
+                  <span class="campaign__item__tag infoicon-sale">セール</span>
+              </div>
+      <div class="campaign__item">
+        <span class="campaign__item__ttl"> CD&DVD・ブルーレイSALE 2026/07/23(木)23:59まで</span>
+              </div>
+    </a>
+                                                                                                                                                  </div>
+</div>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="mainContent pbNested pbNestedWrapper "  id="pbBlock80098">
+								<div class="pbNested " >
+			<div class="mainContent__inner pbNested pbNestedWrapper "  id="pbBlock80099">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock132785">
+						<div class="breadcrumbs">
+  <ol class="breadcrumbs__list">
+                  <li class="breadcrumbs__item">
+          <a href="/" class="link">トップ</a>          <span class="icon-arrow-s-gray icon-arrow-s-gray-dims"></span>
+        </li>
+                        <li class="breadcrumbs__item">
+          <a href="/search/genre/12" class="link">書籍</a>          <span class="icon-arrow-s-gray icon-arrow-s-gray-dims"></span>
+        </li>
+                        <li class="breadcrumbs__item">
+          <a href="/search/genre/1225" class="link">小説・エッセイ・ノンフィクション（文庫）</a>          <span class="icon-arrow-s-gray icon-arrow-s-gray-dims"></span>
+        </li>
+                        <li class="breadcrumbs__item">
+          <a href="/search/genre/122506" class="link">古典・古文・文豪（日本）</a>          <span class="icon-arrow-s-gray icon-arrow-s-gray-dims"></span>
+        </li>
+                        <li class="breadcrumbs__item">
+          <a href="/search/genre/12250605" class="link">な行の著者</a>          <span class="icon-arrow-s-gray icon-arrow-s-gray-dims"></span>
+        </li>
+                        <li class="breadcrumbs__item">
+          吾輩は猫である
+        </li>
+            </ol>
+</div>
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock80101">
+						<style >
+#promotionBannerlimitedFixedPc {
+  padding: 8px 0 0;
+}
+</style>
+
+      <div class="mainContent__product">
+  <div class="mainContent__col">
+    <div class="productInformation">
+      <section class="productInformation__inner">
+        <figure class="productInformation__image forPc">
+          <span><img src="https://content.bookoff.co.jp/goodsimages/LL/001673/0016731582LL.jpg" alt="吾輩は猫である 文春文庫" class="js-orientation -pt"></span>
+        </figure>
+        <div class="productInformation__detail">
+        <div class="productInformation__tagList--genre">
+          <div class="productInformation__tagList">
+            <ul class="tagList">
+              <li class="tag">中古</li>
+            </ul>
+          </div>
+          <ul class="productInformation__genre">
+            <li class="productInformation__genreItem productInformation__genreItem--category">書籍</li>
+            <li class="productInformation__genreItem">文庫</li>
+            <li class="productInformation__genreItem display-genreCode"><div class="displayLabelBox displayLabelBox--genreCode">1225-06-05</div></li>
+          </ul>
+        </div>
+          <h1 class="productInformation__title">吾輩は猫である 文春文庫</h1>
+          <p class="productInformation__author">
+            <a href="/search/author/%E5%A4%8F%E7%9B%AE%E6%BC%B1%E7%9F%B3">夏目漱石</a><span>【著】</span>
+          </p>
+          <div class="review">
+            <div class="review__individual">
+              <div class="review__star">
+                <ul class="review__star__list--small">
+                  <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                  <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                  <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                  <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                  <li class="icon-star_white_small icon-star_yellow_small-dims"></li>
+                </ul>
+                <span class="review__counter"><a href="#anc-review" class="js-anchor">18件</a></span>
+              </div>
+            </div>
+          </div>
+          <p class="productInformation__favorite forSp">
+            <span class="ProductInformationFavoriteD">追加する</span>
+            <a href="/" class="icon-favorite icon-favorite-dims jsBtn-favorite ac-click-cv" data-cv-name="addBookmark_Detail" data-mode="Add" data-item="0016731582"></a>
+            <span class="ProductInformationFavoriteJ">に追加する</span>
+          </p>
+          <figure class="productInformation__image forSp">
+            <span><img src="https://content.bookoff.co.jp/goodsimages/LL/001673/0016731582LL.jpg" alt="吾輩は猫である 文春文庫" class="js-orientation -pt"></span>
+          </figure>
+          <div class="productInformation__Btn">
+            <a href="/used/0016731582" class="productInformation__Btn__used -active">中古</a>
+            <a href="/new/0016731582" class="productInformation__Btn__new ">新品</a>
+          </div>
+          <p class="productInformation__regularPrice">定価 ¥858</p>
+          <p class="productInformation__price">
+            <span class="productInformation__price--large"> 220<span class="productItem__moneyUnit">円</span></span>
+
+            <small>定価より638円（74%）おトク</small>
+          </p>
+          <p class="productInformation__point">獲得ポイント<span>2P</span></p>
+          <div class="productInformation__spCart forSp">
+            <ul class="productInformation__btns">
+              <li class="js-cartFloatTargetSP">
+                  <a href="/" class="btn jsBtn-arrival ac-click-cv" data-cv-name="addAlertlMail_Detail" data-mode="Add" data-item="0016731582">入荷のお知らせを受け取る</a>
+              </li>
+            </ul>
+          </div>
+          <p class="productInformation__stock">
+            <span class="productInformation__stock--none">在庫なし</span>
+          </p>
+          <p class="productInformation__stock"> 発送時期 1～5日以内に発送 </p>
+          <div class="forSp">
+          </div>
+          <div class="productInformation__spCart forSp">
+              <p class="js-discountAlertItem">
+                <a href="/" class="productInformation__discount js-discountAlertModal jsBtn-discount-modal ac-click-cv" data-cv-name="addPriceDownMail_Detail" data-modal="discountAlert" data-item="0016731582">
+                  <span class="icon-mail icon-mail-dims"></span>
+                  <span>値下げのお知らせを受け取る</span>
+                </a>
+              </p>
+          </div>
+          <ul class="productInformation__supplement">
+            <li><a href="https://support-online.bookoff.co.jp/answer/6583dca614cd35d38e3d0cfe" class="link link--arrow" target="_blank">中古商品の品質・付属品について</a></li>
+            <li><a href="https://support-online.bookoff.co.jp/answer/658553fc129d451df9fefb83" class="link link--arrow" target="_blank">返品について</a></li>
+          </ul>
+        </div>
+      </section><!-- /productOverview__inner -->
+    </div><!-- /productOverview -->
+    <div id="js-breadcrumbsDestination-bottom" class="breadcrumbsDestination-bottom"></div>
+    <div id="js-recommendDestination" class="recommendDestination"></div>
+    <div class="forSp">
+        <div class="promotionBanner">
+          <div id="promotionBannerlimitedFixedMb">
+            <div class="promotionBannerDetail">
+              <picture>
+                <source media="(max-width:767px)" srcset="https://content.bookoff.co.jp/assets/images/banner/campaign/limited/blank-750-120.png" width="750" height="120">
+                <img src="https://content.bookoff.co.jp/assets/images/banner/campaign/limited/blank-750-120.png" alt="" width="750" height="120">
+              </picture>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div id="js-breadcrumbsDestination-top" class="breadcrumbsDestination-top"></div>
+    <div class="productDetail">
+      <section class="productDetail__inner">
+        <h2 class="productDetail__ttl">商品詳細</h2>
+        <div class="productDetail__tableWrap">
+          <table class="productDetail__table">
+            <tbody>
+              <tr>
+                <th>内容紹介</th>
+                <td></td>
+              </tr>
+              <tr>
+                <th>販売会社／発売会社</th>
+                <td id="js-company">文藝春秋</td>
+              </tr>
+              <tr>
+                <th>発売年月日</th>
+                <td>2011/11/10
+                  <p class="productDetail__link">
+                    <a href="https://support-online.bookoff.co.jp/answer/6583dca614cd35d38e3d0cfe/" target="_blank">改訂版・発行年月日について</a>
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <th>JAN</th>
+                <td>9784167158057</td>
+              </tr>
+            </tbody>
+          </table>
+        </div><!-- /productDetail__tableWrap -->
+      </section><!-- /productDetail__inner -->
+    </div><!-- /productDetail -->
+  </div><!-- /mainContent__col -->
+  <div class="mainContent__col forPc">
+    <div class="productPurchase">
+      <div class="productPurchase__inner">
+        <ul class="productPurchase__btns">
+          <li class="js-cartFloatTargetPC">
+              <a href="/" class="btn jsBtn-arrival ac-click-cv" data-cv-name="addAlertlMail_Detail" data-mode="Add" data-item="0016731582">入荷のお知らせを受け取る</a>
+          </li>
+          <li>
+          </li>
+          <li>
+            <a href="/" class="productPurchase__favorite jsBtn-favorite ac-click-cv" data-cv-name="addBookmark_Detail" data-mode="Add" data-item="0016731582">
+              <span class="icon-favorite icon-favorite-dims"></span>
+              <span class="productPurchase__favoriteTxt">お気に入り追加</span>
+            </a>
+          </li>
+            <li class="js-discountAlertItem">
+              <a href="/" class="productPurchase__discount js-discountAlertModal jsBtn-discount-modal ac-click-cv" data-cv-name="addPriceDownMail_Detail" data-modal="discountAlert" data-item="0016731582">
+                <span class="icon-mail icon-mail-dims"></span>
+                <span>値下げのお知らせを受け取る</span>
+              </a>
+            </li>
+        </ul>
+        <div id="promotionBannerlimitedFixedPc"><img src="https://content.bookoff.co.jp/assets/images/banner/campaign/limited/blank-680-160.png" width="282" height="60"></div>
+      </div><!-- /productPurchase__inner -->
+    </div><!-- /productPurchase -->
+  </div><!-- /mainContent__col -->
+</div>
+<input type="hidden" class="js-modal" data-modal="modalCartAddStock0">
+
+<div id="modal" class="modal">
+  <div class="modal__overlay"></div>
+  <div id="discountAlert" class="modal__dialog" tabindex="0">
+    <div class="modalContent">
+      <div class="modalConfirm">
+        <p class="modalConfirm__ttl">値下げのお知らせメールを受け取る価格を設定してください</p>
+        <div class="modalConfirm__row">
+          <div class="modalConfirm__col">
+            <input type="number" class="modalConfirm__textbox" placeholder="設定価格を入力" name="discountAlert" onkeydown="return event.key !== 'e' && event.key !== 'E' && event.key !== '+' && event.key !== '-' && event.key !== '.'" onInput="checkForm(this)">
+          </div>
+          <p class="modalConfirm__unit">円以下</p>
+          <p class="modalConfirm__error" style="display:none;"></p>
+        </div>
+        <ul class="modalConfirm__btnWrap">
+          <li class="modalConfirm__btn">
+            <a href="/" class="modalConfirm__no js-modalClose" tabindex="0">
+              キャンセル
+            </a>
+          </li>
+          <li class="modalConfirm__btn">
+            <a href="/" class="modalConfirm__yes jsBtn-discount" tabindex="0" data-mode="Add_PriceChange" data-item="0016731582" data-price="220">
+              設定する
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div id="discountAlertCancel" class="modal__dialog" tabindex="0">
+    <div class="modalContent">
+      <div class="modalConfirm">
+        <p class="modalConfirm__ttl">値下げのお知らせ登録を解除します</p>
+        <ul class="modalConfirm__btnWrap">
+          <li class="modalConfirm__btn"><a href="/" class="modalConfirm__no js-modalClose" tabindex="0">キャンセル</a></li>
+          <li class="modalConfirm__btn"><a href="/" class="modalConfirm__yes jsBtn-discount" data-mode="Delete" data-item="0016731582">解除する</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalStoreInformation" class="modal__inner js-modalInner" tabindex="0">
+    <div class="modalContent">
+      <div class="modalStoreInformation">
+        <ul class="modalStoreInformation__genre">
+          <li class="modalStoreInformation__genreItem modalStoreInformation__genreItem--category">書籍</li>
+          <li class="modalStoreInformation__genreItem">文庫</li>
+        </ul>
+        <p class="modalStoreInformation__title">吾輩は猫である</p>
+        <div class="modalStoreInformation__body js-modalInnerContent">
+          <p class="modalStoreInformation__heading">商品が入荷した店舗：0店</p>
+		  <p class="modalStoreInformation__txt">店頭で購入可能な商品の入荷情報となります</p>
+          <p class="modalStoreInformation__note">ご来店の際には売り切れの場合もございます</p>
+          <p class="modalStoreInformation__note">オンラインストア上の価格と店頭価格は異なります</p>
+          <p class="modalStoreInformation__note">お電話やお問い合わせフォームでの在庫確認、お客様宅への発送やお取り置き・お取り寄せは行っておりません</p>
+          <div class="modalStoreInformation__storeSearch">
+            <div class="modalStoreInformation__select">
+              <select name="prefecture" class="modalStoreInformation__selectTag -empty">
+                <option value="-1" selected="">都道府県を選択</option>
+                <option value="1">北海道(0)</option>
+                <option value="2">青森県(0)</option>
+                <option value="3">岩手県(0)</option>
+                <option value="4">宮城県(0)</option>
+                <option value="5">秋田県(0)</option>
+                <option value="6">山形県(0)</option>
+                <option value="7">福島県(0)</option>
+                <option value="8">茨城県(0)</option>
+                <option value="9">栃木県(0)</option>
+                <option value="10">群馬県(0)</option>
+                <option value="11">埼玉県(0)</option>
+                <option value="12">千葉県(0)</option>
+                <option value="13">東京都(0)</option>
+                <option value="14">神奈川県(0)</option>
+                <option value="15">新潟県(0)</option>
+                <option value="16">富山県(0)</option>
+                <option value="17">石川県(0)</option>
+                <option value="18">福井県(0)</option>
+                <option value="19">山梨県(0)</option>
+                <option value="20">長野県(0)</option>
+                <option value="21">岐阜県(0)</option>
+                <option value="22">静岡県(0)</option>
+                <option value="23">愛知県(0)</option>
+                <option value="24">三重県(0)</option>
+                <option value="25">滋賀県(0)</option>
+                <option value="26">京都府(0)</option>
+                <option value="27">大阪府(0)</option>
+                <option value="28">兵庫県(0)</option>
+                <option value="29">奈良県(0)</option>
+                <option value="30">和歌山県(0)</option>
+                <option value="31">鳥取県(0)</option>
+                <option value="32">島根県(0)</option>
+                <option value="33">岡山県(0)</option>
+                <option value="34">広島県(0)</option>
+                <option value="35">山口県(0)</option>
+                <option value="36">徳島県(0)</option>
+                <option value="37">香川県(0)</option>
+                <option value="38">愛媛県(0)</option>
+                <option value="39">高知県(0)</option>
+                <option value="40">福岡県(0)</option>
+                <option value="41">佐賀県(0)</option>
+                <option value="42">長崎県(0)</option>
+                <option value="43">熊本県(0)</option>
+                <option value="44">大分県(0)</option>
+                <option value="45">宮崎県(0)</option>
+                <option value="46">鹿児島県(0)</option>
+                <option value="47">沖縄県(0)</option>
+              </select>
+            </div>
+            <div class="modalStoreInformation__select">
+              <select name="city" class="modalStoreInformation__selectTag -empty">
+                <option value="-1" selected="">市区町村を選択</option>
+              </select>
+            </div>
+          </div>
+          <ul class="modalStoreInformation__list">
+          </ul>
+        </div>
+      </div>
+      <div class="modal__close js-modalClose" tabindex="0"><img src="/library/common/svg/close.svg" alt="close"></div>
+    </div>
+    <div class="modal__closeSp js-modalCloseSp"><span></span></div>
+  </div>
+
+  <div id="modalCartAddStock0" class="modal__inner js-modalInner" tabindex="0">
+    <div class="modalContent">
+      <div class="modalContent__inner">
+        <div class="modal__headingBlock">
+          <p class="modal__title">カートに追加できませんでした</p>
+        </div>
+        <div class="modalItems">
+          <p class="modalItems__note">
+            <span class="icon-info icon-info-dims"></span>
+            <span class="js-cart-alert"></span>
+          </p>
+        </div>
+      </div>
+      <ul class="modal__confirm modal__confirm--box-shadow-none">
+        <li class="modal__confirmBtn">
+          <a href="/" class="modal__no js-modalClose" tabindex="0">キャンセル</a>
+        </li>
+        <li class="modal__confirmBtn">
+          <a href="/" class="modal__yes js-refreshPage">OK</a>
+        </li>
+      </ul>
+      <div class="modal__close js-modalClose" tabindex="0">
+        <img src="/library/common/svg/close.svg" alt="close">
+      </div>
+    </div>
+    <div class="modal__closeSp js-modalCloseSp">
+      <span></span>
+    </div>
+  </div>
+
+  <div id="modalPreviousPrice" class="modal__inner js-modalInner" tabindex="0">
+    <div class="modalContent">
+      <p class="modal__title">値下げ前価格について</p>
+      <div class="modalPreviousPrice js-modalInnerContent">
+        <div class="modalPreviousPrice__inner">
+          <p class="modalPreviousPrice__txt">
+            <span>本価格は現中古販売価格の「値下げ前価格」となります。<br> 直近約1か月間、値下げ前価格での販売実績があるものだけ表示しております。</span>
+          </p>
+        </div>
+      </div>
+      <div class="modal__close js-modalClose"><img src="/library/common/svg/close.svg" alt="close"></div>
+    </div>
+    <div class="modal__closeSp js-modalCloseSp"><span></span></div>
+  </div><!-- modalPreviousPrice -->
+
+</div>
+<div class="cartFloat js-cartFloat">
+  <div id="promotionBannerlimitedFloating"></div>
+  <div class="cartFloat__head">
+    <p class="cartFloat__name">吾輩は猫である</p>
+    <p class="cartFloat__price">¥220</p>
+  </div>
+  <div class="cartFloat__body">
+    <p class="cartFloat__stock">
+      <span class="cartFloat__alert">在庫なし</span>
+    </p>
+    <p class="cartFloat__btn">
+        <a href="/" class="btn jsBtn-arrival ac-click-cv" data-cv-name="addAlertlMail_Detail" data-mode="Add" data-item="0016731582">入荷のお知らせを受け取る</a>
+    </p>
+  </div>
+</div>
+
+<script>
+function checkForm($this) {
+  let str = $this.value;
+  while (str.match(/[^A-Z^a-z\d\-]/)) {
+      str = str.replace(/[^0-9]/, "");
+  }
+  $this.value = str;
+}
+</script>
+
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock80102">
+						<div class="mainContent__product">
+  <div class="mainContent__col">
+    <div class="review">
+      <section class="review__inner">
+        <h2 class="information__ttl" id="anc-review">商品レビュー</h2>
+        <div class="review__totalEvaluation">
+          <div class="review__star">
+            <div class="review__star__inner">
+              <ul class="review__star__list">
+                                                <li class="icon-star_yellow_large icon-star_yellow_large-dims"></li>
+                                                                <li class="icon-star_yellow_large icon-star_yellow_large-dims"></li>
+                                                                <li class="icon-star_yellow_large icon-star_yellow_large-dims"></li>
+                                                                <li class="icon-star_yellow_large icon-star_yellow_large-dims"></li>
+                                                                <li class="icon-star_white_large icon-star_white_large-dims"></li>
+                                              </ul>
+              <p class="review__totalEvaluation__score">3.7</p>
+            </div>
+            <p class="review__totalEvaluation__number">18件のお客様レビュー</p>
+          </div>
+          <p class="btnWrap">
+            <a href="/review/post/0016731582" class="btn btn--s" rel="nofollow">レビューを投稿</a>
+          </p>
+        </div>
+        <div class="review__individualWrap">
+                    <div class="review__individual">
+            <div class="review__star">
+              <ul class="review__star__list--small">
+                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_white_small icon-star_white_small-dims"></li>
+                                                                <li class="icon-star_white_small icon-star_white_small-dims"></li>
+                                              </ul>
+              <span class="review__star--timestamp">2026/06/14</span>
+            </div>
+            <div class="review__individual__textWrap js-showmore">
+                                                                      <p class="review__individual__text">
+                                〇漱石ぐらい読んどこうかなと手を取った３作目。
+
+〇いやーびっくりしました。思ってたのとぜんぜん違う。
+
+難しい漢字のオンパレード、自分の知識をひけらかしたいだけ？の知らない人や本などが続々登場。改行も一切なし。きつい、きつい。
+
+しかも話は面白くない。まあ、風刺小説だからなのか...
+                              </p>
+                                          <div class="review__individual__continueLink">
+                <a class="js-showmore-btn" tabindex="0">表示する</a>
+              </div>
+              <div class="review__individual__text--hide">
+                                                <p>〇漱石ぐらい読んどこうかなと手を取った３作目。
+
+〇いやーびっくりしました。思ってたのとぜんぜん違う。
+
+難しい漢字のオンパレード、自分の知識をひけらかしたいだけ？の知らない人や本などが続々登場。改行も一切なし。きつい、きつい。
+
+しかも話は面白くない。まあ、風刺小説だからなのか知らないけど、斜に構えた皮肉った話がえんえんと続く…。
+
+途中でギブアップしそうになったほど。ネットを見ると、やはりほとんどの人の感想がそんな感じでした。
+
+ただ、面白いとネットで書いている人の記事を読み、この本の意義と読み方を学んで途中からはまあまあ楽しみながら？読み終えました。
+
+とにかく分からない漢字や人物などはすべて意味を調べ、注釈もひたすら読んで、とにかく当時としては斬新だったことも頭に入れ、そしてこれが漱石と同じくらい知識があった仲間たちに向けたものということを意識して読みました。
+
+本当にすごい知識量の人だったんですね。
+
+これを面白いと思える人の知識量、読書力はハンパないですね。</p>
+              </div>
+                          </div>
+                        <p class="review__individual__posted">Posted by <img src="/library/common/images/product/bukulog.png" alt="ブクログ"></p>
+                      </div>
+                    <div class="review__individual">
+            <div class="review__star">
+              <ul class="review__star__list--small">
+                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                              </ul>
+              <span class="review__star--timestamp">2025/12/04</span>
+            </div>
+            <div class="review__individual__textWrap js-showmore">
+                                                                      <p class="review__individual__text">
+                                主人公の猫がお雑煮を食べて子供達に踊っているみたいと言われるところがお気に入りですが、猫がどこか人間をあまり好いていないところも面白いです。また猫の主人は夏目漱石や夏目漱石の周りの人がモデルとなっているので、夏目漱石の伝記などと一緒に読むとさらに面白く読めます。伝記に夏目漱石の少...
+                              </p>
+                                          <div class="review__individual__continueLink">
+                <a class="js-showmore-btn" tabindex="0">表示する</a>
+              </div>
+              <div class="review__individual__text--hide">
+                                                <p>主人公の猫がお雑煮を食べて子供達に踊っているみたいと言われるところがお気に入りですが、猫がどこか人間をあまり好いていないところも面白いです。また猫の主人は夏目漱石や夏目漱石の周りの人がモデルとなっているので、夏目漱石の伝記などと一緒に読むとさらに面白く読めます。伝記に夏目漱石の少しダメなところなども書いてあって、文豪たちが一気に身近に感じられました。</p>
+              </div>
+                          </div>
+                        <p class="review__individual__posted">Posted by <img src="/library/common/images/product/bukulog.png" alt="ブクログ"></p>
+                      </div>
+                    <div class="review__individual">
+            <div class="review__star">
+              <ul class="review__star__list--small">
+                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_yellow_small icon-star_yellow_small-dims"></li>
+                                                                <li class="icon-star_white_small icon-star_white_small-dims"></li>
+                                                                <li class="icon-star_white_small icon-star_white_small-dims"></li>
+                                                                <li class="icon-star_white_small icon-star_white_small-dims"></li>
+                                              </ul>
+              <span class="review__star--timestamp">2025/09/05</span>
+            </div>
+            <div class="review__individual__textWrap js-showmore">
+                                                                      <p class="review__individual__text">
+                                書き出しは有名だけど、読んだことがなかった本。飼い猫視点で描かれる日常の出来事。本の世界と現代の生活の違いがあって、理解できない単語がちらほらあり、読むのに時間がかかった。それなりに文量があることも時間がかかった理由だと思うが、結末に至るまでは早く読み終わらないかな…と思いながら...
+                              </p>
+                                          <div class="review__individual__continueLink">
+                <a class="js-showmore-btn" tabindex="0">表示する</a>
+              </div>
+              <div class="review__individual__text--hide">
+                                                <p>書き出しは有名だけど、読んだことがなかった本。飼い猫視点で描かれる日常の出来事。本の世界と現代の生活の違いがあって、理解できない単語がちらほらあり、読むのに時間がかかった。それなりに文量があることも時間がかかった理由だと思うが、結末に至るまでは早く読み終わらないかな…と思いながら、どうにか読み終えた感じだった。</p>
+              </div>
+                          </div>
+                        <p class="review__individual__posted">Posted by <img src="/library/common/images/product/bukulog.png" alt="ブクログ"></p>
+                      </div>
+                  </div>
+        <p class="review__allshowLink"><a href="/review/detail/0016731582">すべてのレビューを見る</a></p>
+      </section><!-- /review__inner -->
+    </div>
+  </div>
+</div>
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock481102">
+						<div class="hashtag">
+  <div class="hashtag__inner">
+    <h2 class="hashtag__heading">関連ワードから探す</h2>
+    <ul class="hashtagList">
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E6%A5%BD%E3%81%97%E3%81%84" class="hashtagBtn hashtagBtn--link">楽しい</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E5%AD%90%E4%BE%9B" class="hashtagBtn hashtagBtn--link">子供</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E5%84%AA%E3%81%97%E3%81%84" class="hashtagBtn hashtagBtn--link">優しい</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E9%AB%98%E6%A0%A1" class="hashtagBtn hashtagBtn--link">高校</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E4%BA%BA%E7%94%9F%E8%AB%96" class="hashtagBtn hashtagBtn--link">人生論</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E8%BF%91%E4%BB%A3" class="hashtagBtn hashtagBtn--link">近代</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E6%98%8E%E6%B2%BB" class="hashtagBtn hashtagBtn--link">明治</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E8%8B%B1%E5%9B%BD" class="hashtagBtn hashtagBtn--link">英国</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E4%BA%BA%E9%96%93%E6%A8%A1%E6%A7%98" class="hashtagBtn hashtagBtn--link">人間模様</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E5%AE%B6%E6%97%8F" class="hashtagBtn hashtagBtn--link">家族</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E5%A4%8F%E7%9B%AE%E6%BC%B1%E7%9F%B3" class="hashtagBtn hashtagBtn--link">夏目漱石</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E8%A9%A9%E4%BA%BA" class="hashtagBtn hashtagBtn--link">詩人</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E3%83%A6%E3%83%BC%E3%83%A2%E3%82%A2" class="hashtagBtn hashtagBtn--link">ユーモア</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E5%80%8B%E6%80%A7%E8%B1%8A%E3%81%8B" class="hashtagBtn hashtagBtn--link">個性豊か</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E3%82%A8%E3%83%94%E3%82%BD%E3%83%BC%E3%83%89" class="hashtagBtn hashtagBtn--link">エピソード</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E3%83%A6%E3%83%BC%E3%83%A2%E3%83%A9%E3%82%B9" class="hashtagBtn hashtagBtn--link">ユーモラス</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E3%82%B7%E3%83%A7%E3%83%83%E3%82%AF" class="hashtagBtn hashtagBtn--link">ショック</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E3%83%87%E3%83%93%E3%83%A5%E3%83%BC%E4%BD%9C" class="hashtagBtn hashtagBtn--link">デビュー作</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E5%AE%9F%E8%B7%B5" class="hashtagBtn hashtagBtn--link">実践</a></li>
+                      <li class="hashtagList__item"><a href="/search/hashtag/%E8%A6%B3%E5%AF%9F" class="hashtagBtn hashtagBtn--link">観察</a></li>
+        </ul>
+  </div>
+</div>
+<script>
+	$(document).ready(function() {
+		// ハッシュタグリンクへのquery_string追加
+		var arrQuery = [];
+		var sortKey = sessionStorage.getItem('listoption_sortkey');
+		var pageCount = sessionStorage.getItem('listoption_pagecount');
+		if (sortKey !== null && sortKey !== '00') {
+			paramName = 'sort';
+			paramValue = sortKey;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+		if (pageCount !== null && pageCount !== '30') {
+			paramName = 'per-page';
+			paramValue = pageCount;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+		var hashtagQuery = makeQueryString(arrQuery);
+		$('.hashtagBtn--link').each(function () {
+			var hashtagUrl = $(this).attr('href') + hashtagQuery;
+			$(this).attr('href', hashtagUrl);
+		});
+	});
+
+	function makeQueryString(arrQuery) {
+		// query_string生成
+		if (arrQuery.length > 0) {
+				var queryString = $.map(arrQuery, function(param) {
+						return encodeURIComponent(param.name) + '=' + encodeURIComponent(param.value);
+				}).join('&');
+				return '?' + queryString;
+		} else {
+			return '';
+		}
+	}
+</script>
+
+			</div>
+		</div>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock397940">
+								<div class="pbNested " id="js-recommendMove">
+			<div class="pbNested pbNestedWrapper "  id="pbBlock716281">
+						<section class="itemsContainer">
+    <div class="itemsContainer__headerArea itemsContainer__headerArea--spacedTop">
+        <h2 class="itemsContainer__header">関連商品</h2>
+    </div>
+    <div id="js-recRelation" class="js-recommend itemsContainer__outer" data-item-number="20" data-model-id="211" data-id="detail_relation" data-id-mb="detail_relation-mb" data-id-pc="detail_relation-pc" data-item-id="current" data-genre="genreCode2" data-price="" data-item-type="">
+        <!-- レコメンド出力箇所 -->
+    </div>
+</section>
+			</div>
+		</div>
+
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock716282">
+						<section class="itemsContainer">
+    <div class="itemsContainer__headerArea itemsContainer__headerArea--spacedTop">
+        <h2 class="itemsContainer__header">同じジャンルのおすすめ商品</h2>
+    </div>
+    <div id="js-recGenre" class="js-recommend itemsContainer__outer" data-item-number="20" data-model-id="602" data-id="detail_genre" data-id-mb="detail_genre-mb" data-id-pc="detail_genre-pc" data-item-id="current" data-genre="genreCode2" data-price="" data-item-type="">
+        <!-- レコメンド出力箇所 -->
+    </div>
+</section>
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock713633">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock713634">
+						<section class="itemsContainer itemsContainer--itemViewHistory js-itemViewHistory">
+  <div class="itemsContainer__headerArea itemsContainer__headerArea--spacedTop js-displayItemViewHistoryHeader -hidden">
+  <h2 class="itemsContainer__header">最近チェックした商品</h2>
+  <div class="itemsContainer__textBox itemsContainer__textBox--deleteHistory js-delItemViewHistoryArea"><button class="link itemsContainer__actionButton js-delItemViewHistory"><span>履歴を消す</span></button></div> 
+  </div>
+  <div class="itemsContainer__wrapper">
+    <div class="itemsContainer__main splide js-displayItemViewHistory" id="ItemViewHistory">
+    </div>
+    <div class="itemsContainer__textBox itemsContainer__textBox--removeHistory js-undoItemViewHistoryArea -hidden">
+      <div class="itemsContainer__text">履歴をすべて削除しました</div>
+      <div class="itemsContainer__actionBox">
+        <button class="itemsContainer__actionButton js-undoItemViewHistory"><span>もとにもどす</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="setProductList pbNested pbNestedWrapper "  id="pbBlock662196">
+								<div class="pbNested " id="js-setProductList">
+		</div>
+
+			</div>
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock507931">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock505399">
+						<div class="naviElement">
+
+  <!-- スマホで見るボタン start -->
+  <div class="js-modal js-modal-navi boViewSpBtn" data-modal="modal2dcode" data-btn-name="お手持ちのスマホで確認する">
+    お手持ちのスマホで確認する
+  </div>
+  <!-- スマホで見るボタン end -->
+
+
+  <!-- 2dコードモーダル start -->
+  <div id="modal2dcode" class="modal__inner js-modalInner">
+    <div class="modalContent">
+      <div class="modalContent__inner">
+        <div class="modal__headingBlock">
+          <p class="modal__title">お手持ちのスマホでスキャン</p>
+        </div>
+        <div class="modalItems js-modalInnerContent">
+          <div id="2dcode" class="modalItems__2dcode"></div>
+          <div class="modalItems__text">お近くのスタッフに、表示されたスマホ画面を</div>
+          <div class="modalItems__text">みせていただければ商品をお探しいたします。</div>
+        </div>
+      </div>
+      <div class="modal__close js-modalClose">
+        <img src="/library/common/svg/close.svg" alt="close" width="24" height="24">
+      </div>
+    </div>
+  </div>
+  <!-- 2dコードモーダル end -->
+
+
+  <!-- スマホ画面モーダル -->
+  <div class="modalSpNavi">
+    <div class="modalSpNavi__inner">
+      <div class="modalSpNavi__overlay"></div>
+      <div class="modalSpNavilItems">
+        <div class="modalSpNavilItem__close">
+          <img src="/library/common/svg/close.svg" alt="close" width="24" height="24">
+        </div>
+        <div class="modalSpNavilItem__text modal__title modalSpNavilItem__text--main">ブックオフナビをご利用いただき ありがとうございます</div>
+        <div class="modalSpNavilItem__text">お近くのスタッフにこの商品詳細画面をお見せください。400万点の在庫の中から商品をお探しいたします。</div>
+        <div class="modalSpNavilItem__text modalSpNavilItem__text--alert">※画面に表示されている価格はお取り寄せ時の価格となります。</div>
+      </div>
+    </div>
+  </div>
+  <!-- スマホ画面モーダル -->
+
+
+  <!-- 1dバーコード start -->
+  <div class="barcodeWrap">
+    <img id="barcode" class="barcode__image" width="250" height="38">
+    <div class="barcode__text"></div>
+  </div>
+  <!-- 1dバーコード end -->
+</div>
+			</div>
+		</div>
+
+			</div>
+		</div>
+	</div>
+
+</div></div></div><div id="footerArea" class="pbFooterArea">
+	<div id="area4" class="pbArea ">
+		<div class="pbNested " >
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock7844">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock161678">
+						<footer class="footer" id="footer">
+    <div class="footer__wrap">
+      <div class="footer__inner">
+        <div class="footer__navi">
+          <p class="footer__pageTop">
+            <a href="#" class="footer__pageTopBtn js-pagetop">
+              <img src="/library/common/images/img-footer-arrow.svg" alt="ページトップへ戻る">
+            </a>
+          </p>
+          <ul>
+            <li class="footer__item footer__item--first"><a href="https://support-online.bookoff.co.jp" class="footer__link">ヘルプ・ご質問</a>
+              <ul>
+                <li class="footer__item"><a href="https://support-online.bookoff.co.jp/answer/64363fbd97ebd8c6491e0a07" class="footer__link">配送料について</a></li>
+                <li class="footer__item"><a href="https://support-online.bookoff.co.jp/answer/65852e8cd29784dd07b9bdc7" class="footer__link">支払い方法について</a></li>
+              </ul>
+            </li>
+            <li class="footer__item"><a href="https://shopping.bookoff.co.jp/service/mail" class="footer__link">メールサービス</a></li>
+            <li class="footer__item"><a href="https://regist11.smp.ne.jp/regist/is?SMPFORM=ofn-latbq-651b190782b21aa1eaa0162e484e578c" class="footer__link">ご意見・ご感想</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer__wrap footer__wrap--bottom">
+      <div class="footer__inner">
+        <ul class="footer__sns">
+          <li>
+            <a href="https://www.facebook.com/%E3%83%96%E3%83%83%E3%82%AF%E3%82%AA%E3%83%95%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3bookoffonline-166258740189848/" class="footer__snsBtn" target="_blank">
+              <img src="/library/common/images/img-footer-fb.svg" alt="Facebook">
+            </a>
+          </li>
+          <li>
+            <a href="https://x.com/bookoffonline" class="footer__snsBtn" target="_blank">
+              <img src="/library/common/images/img-footer-x.svg" alt="X">
+            </a>
+          </li>
+          <li>
+            <a href="https://page.line.me/iau9918q" class="footer__snsBtn">
+              <img src="/library/common/images/img-footer-line.svg" alt="LINE">
+            </a>
+          </li>
+        </ul>
+        <div class="footer__bottomNavi">
+          <ul>
+           <li><a href="https://www.bookoff.co.jp/" class="footer__bottomLlink" target="_blank">BOOKOFF公式サイト</a></li>
+           <li><a href="https://www.bookoffgroup.co.jp/corporate/business.html" class="footer__bottomLlink" target="_blank">企業情報</a></li>
+           <li><a href="https://member.bookoff.co.jp/bo-member-content/contract/" class="footer__bottomLlink" target="_blank">BOOKOFF会員サービス利用規約</a></li>
+           <li><a href="https://shopping.bookoff.co.jp/policies/terms" class="footer__bottomLlink">利用規約</a></li>
+          <li><a href="https://www.bookoff.co.jp/site/privacy.html" class="footer__bottomLlink" target="_blank">個人情報保護方針</a></li>
+          <li><a href="https://www.bookoff.co.jp/site/socialmedia.html" class="footer__bottomLlink" target="_blank">ソーシャルメディアポリシー</a></li>
+          <li><a href="https://www.bookoff.co.jp/site/customerharassment.html" class="footer__bottomLlink" target="_blank">カスタマーハラスメントに対する基本方針</a></li>
+          <li><a href="https://shopping.bookoff.co.jp/policies/regulatory-disclosure" class="footer__bottomLlink">特定商取引法に基づく表示</a></li>
+          <li><a href="https://shopping.bookoff.co.jp/policies/external-transmission" class="footer__bottomLlink">利用者情報の外部送信について</a></li>
+          <li><a href="https://www.bookoffgroup.co.jp/" class="footer__bottomLlink" target="_blank">ブックオフグループホールディングス株式会社</a></li>
+         </ul>
+        </div>
+        <div class="footer__bottom">
+          <div class="footer__text">
+            <p> ブックオフコーポレーション株式会社<br> 古物商許可番号 第452760001146号 神奈川県公安委員会許可 </p>
+          </div>
+          <div class="footer__copyright"> Copyright(C)BOOKOFF CORPORATION LTD.<br class="forSp">All Rights Reserved. </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock209621">
+						
+<link rel="stylesheet" href="/library/common/css/appli/app-hide-common.css">
+
+
+			</div>
+		</div>
+
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock7845">
+						<div id="modal" class="modal">
+      <div class="modal__overlay"></div>
+      <div id="discountAlert" class="modal__dialog" tabindex="0">
+        <div class="modalContent">
+          <div class="modalConfirm">
+            <p class="modalConfirm__ttl">値下げのお知らせメールを受け取る価格を設定してください</p>
+            <div class="modalConfirm__row">
+              <div class="modalConfirm__col">
+                <input type="text" class="modalConfirm__textbox" placeholder="設定価格を入力" name="discountAlert">
+              </div>
+              <p class="modalConfirm__unit">円以下</p>
+            </div>
+            <ul class="modalConfirm__btnWrap">
+              <li class="modalConfirm__btn"><a href="/" class="modalConfirm__no js-modalClose" tabindex="0">キャンセル</a></li>
+              <li class="modalConfirm__btn"><a href="/" class="modalConfirm__yes js-discountAlertSubmit" tabindex="0">設定する</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div id="discountAlertCancel" class="modal__dialog" tabindex="0">
+        <div class="modalContent">
+          <div class="modalConfirm">
+            <p class="modalConfirm__ttl">値下げのお知らせ登録を解除します</p>
+            <ul class="modalConfirm__btnWrap">
+              <li class="modalConfirm__btn"><a href="/" class="modalConfirm__no js-modalClose" tabindex="0">キャンセル</a></li>
+              <li class="modalConfirm__btn"><a href="/" class="modalConfirm__yes js-discountAlertCancel">解除する</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div id="modalStoreInformation" class="modal__inner js-modalInner" tabindex="0">
+        <div class="modalContent">
+          <div class="modalStoreInformation">
+            <ul class="modalStoreInformation__genre">
+              <li class="modalStoreInformation__genreItem modalStoreInformation__genreItem--category"> DVD・ブルーレイ </li>
+              <li class="modalStoreInformation__genreItem">アニメ</li>
+            </ul>
+            <p class="modalStoreInformation__title">学園黙示録ＨＩＧＨＳＣＨＯＯＬ　ＯＦ　ＴＨＥ　ＤＥＡＤ（限定版）(7)(オリジナルアニメＢｌｕ－ｒａｙ付)</p>
+            <div class="modalStoreInformation__body js-modalInnerContent" style="height: 549.516px;">
+              <p class="modalStoreInformation__heading">商品が入荷した店舗：32店</p>
+              <p class="modalStoreInformation__note">在庫状況は少し前の情報となります。店頭では売り切れの場合もございます。電話でのお取り置きやお取り寄せは行っておりませんのでご注意ください</p>
+              <div class="modalStoreInformation__storeSearch">
+                <div class="modalStoreInformation__select">
+                  <select name="month" class="modalStoreInformation__selectTag -empty">
+                    <option value="" selected="">都道府県を選択</option>
+                    <option value="北海道">北海道</option>
+                    <option value="青森県">青森県</option>
+                    <option value="岩手県">岩手県</option>
+                    <option value="宮城県">宮城県</option>
+                    <option value="秋田県">秋田県</option>
+                    <option value="山形県">山形県</option>
+                    <option value="福島県">福島県</option>
+                    <option value="茨城県">茨城県</option>
+                    <option value="栃木県">栃木県</option>
+                    <option value="群馬県">群馬県</option>
+                    <option value="埼玉県">埼玉県</option>
+                    <option value="千葉県">千葉県</option>
+                    <option value="東京都">東京都</option>
+                    <option value="神奈川県">神奈川県</option>
+                    <option value="新潟県">新潟県</option>
+                    <option value="富山県">富山県</option>
+                    <option value="石川県">石川県</option>
+                    <option value="福井県">福井県</option>
+                    <option value="山梨県">山梨県</option>
+                    <option value="長野県">長野県</option>
+                    <option value="岐阜県">岐阜県</option>
+                    <option value="静岡県">静岡県</option>
+                    <option value="愛知県">愛知県</option>
+                    <option value="三重県">三重県</option>
+                    <option value="滋賀県">滋賀県</option>
+                    <option value="京都府">京都府</option>
+                    <option value="大阪府">大阪府</option>
+                    <option value="兵庫県">兵庫県</option>
+                    <option value="奈良県">奈良県</option>
+                    <option value="和歌山県">和歌山県</option>
+                    <option value="鳥取県">鳥取県</option>
+                    <option value="島根県">島根県</option>
+                    <option value="岡山県">岡山県</option>
+                    <option value="広島県">広島県</option>
+                    <option value="山口県">山口県</option>
+                    <option value="徳島県">徳島県</option>
+                    <option value="香川県">香川県</option>
+                    <option value="愛媛県">愛媛県</option>
+                    <option value="高知県">高知県</option>
+                    <option value="福岡県">福岡県</option>
+                    <option value="佐賀県">佐賀県</option>
+                    <option value="長崎県">長崎県</option>
+                    <option value="熊本県">熊本県</option>
+                    <option value="大分県">大分県</option>
+                    <option value="宮崎県">宮崎県</option>
+                    <option value="鹿児島県">鹿児島県</option>
+                    <option value="沖縄県">沖縄県</option>
+                  </select>
+                </div>
+                <div class="modalStoreInformation__select">
+                  <select name="month" class="modalStoreInformation__selectTag -empty">
+                    <option value="" selected="">市区町村を選択</option>
+                    <option value="札幌市">札幌市</option>
+                  </select>
+                </div>
+              </div>
+              <ul class="modalStoreInformation__list">
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+                <li class="modalStoreInformation__item">
+                  <a href="/" class="modalStoreInformation__link"> BOOKOFF 札幌南2条店 <small class="modalStoreInformation__address">北海道札幌市中央区</small>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal__close js-modalClose" tabindex="0"><img src="/library/common/svg/close.svg" alt="close"></div>
+        </div>
+        <div class="modal__closeSp js-modalCloseSp"><span></span></div>
+      </div>
+    </div>
+			</div>
+		</div>
+	</div>
+
+</div></div>
+<script  src="/library/common/js/sjis_convert.min.js"></script>
+<script  src="/library/common/js/suggest_module.js?d=20240911"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/common/item-view-history-show.js?rev=20260427"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/recommend/zeta/build-item.js?rev=20260527"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/recommend/zeta/build-contents.js?rev=20260527"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/recommend/zeta/core.js"></script>
+</body>
+</html>
