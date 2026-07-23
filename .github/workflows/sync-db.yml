@@ -1,0 +1,45 @@
+name: Sync DB schema
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  sync-db:
+    runs-on: ubuntu-latest
+    # フォークPRにはsecretsが渡らないため、same-repo PRとmain pushのみ実行
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+    - name: Apply DB schema
+      if: github.event_name == 'push'
+      env:
+        K8S_DB_URL: https://k8s-db.onara.boo/api/v1/sync
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+        POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+        CI_COMMIT_SHA: ${{ github.sha }}
+      run: python3 scripts/k8s_db_sync.py --apply
+    - name: Dry-run DB schema
+      if: github.event_name == 'pull_request'
+      env:
+        K8S_DB_URL: https://k8s-db.onara.boo/api/v1/sync
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+        POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+        CI_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        CI_REPO: ${{ github.repository }}
+        CI_COMMIT_PULL_REQUEST: ${{ github.event.pull_request.number }}
+      run: python3 scripts/k8s_db_sync.py --dry-run --comment
