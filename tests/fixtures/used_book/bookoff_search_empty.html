@@ -1,0 +1,2864 @@
+<!DOCTYPE html>
+<html data-csrf-tmp-token="9bb8da1cf607a0aa" data-csrf-tmp-verifier="78fb10acbeb3e91cf66cc23c5377a388d05e7734501ff0a7c144a3eb89876680" xmlsn:og="http://ogp.me/ns#" xmlns:fb="http://ogp.me/ns/fb#" lang="ja">
+<head>
+<meta charset="UTF-8">
+
+<link rel="shortcut icon" href="/favicon.ico?dummy=1674087367" />
+<link rel="stylesheet" type="text/css" href="/css/shopping/search.css" charset="UTF-8" />
+<link rel="stylesheet" type="text/css" href="/publis.css" /><meta name="keywords" content="ブックオフ公式オンラインストアの検索ページです。有名書籍から人気コミックまで幅広いジャンルでお気に入りの作品が見つかるかも？　本(書籍)、漫画(コミック)、CD、DVD・ブルーレイ、ゲームなど中古・新品の通販ならブックオフ公式オンラインストア" />
+<meta name="description" content="" />
+<title>検索一覧  | ブックオフ公式オンラインストア</title>
+<script >
+<!--
+	var pbGlobalAliasBase = '/';
+//-->
+</script>
+<script  src="/public.js"></script>
+<meta name="viewport" content="width=device-width">
+<!--link rel="shortcut icon" href="https://content.bookoffonline.co.jp/favicon.ico"-->
+<link rel="apple-touch-icon" sizes="180x180" href="/library/common/images/apple_touch_icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/library/common/images/webclip_android.png">
+<link rel="stylesheet" href="/library/common/css/common.css?d=20250416">
+<link rel="stylesheet" href="/library/common/css/headerFooter.css">
+<script src="https://content.bookoff.co.jp/files/common/js/jquery-2.2.4.min.js"></script>
+<script src="/library/common/js/vendor.bundle.js"></script>
+<script src="/library/common/js/common.js"></script>
+<script src="/library/common/js/headerFooter.js"></script>
+<!--<link rel="stylesheet" type="text/css" href="/library/common/css/mainContent__product.css" />
+<script  src="/library/common/js/modal-adjust.js"></script>-->
+<link rel="stylesheet" type="text/css" href="https://content.bookoff.co.jp/assets/css/common/items-container.css?rev=20260612" />
+<script  src="https://content.bookoff.co.jp/assets/js/common/plugin/splide.min.js"></script>
+
+<script  src="https://content.bookoff.co.jp/files/common/js/jquery-1.12.4.min.js"></script>
+<script>
+
+	var class_name = 'BocSearchResult';
+
+$(document).on('click', '.js-ageverification', function(){
+	var type = $(this).attr('data-type') ?? '';
+	var mode = $(this).attr('data-mode') ?? '';
+	var item_id = $(this).attr('data-item') ?? '';
+	var cvName = $(this).attr('data-cv-name') ?? '';
+	var modalBtn = $('#ageVerification__btns--agree');
+
+	if(type == 'cart' || type == 'arrival' || type == 'favorite') {
+		modalBtn.attr('data-mode', mode);
+		modalBtn.attr('data-item', item_id);
+		modalBtn.attr('data-cv-name', cvName);
+
+		if(type == 'cart') {
+			var stockType = $(this).attr('data-stock') ?? '';
+			modalBtn.attr('data-stock', stockType);
+		}
+
+		modalBtn.addClass('jsBtn-' + type);
+		modalBtn.addClass('ac-click-cv');
+	} else {
+		$('#modalAgeVerification > modalContent > js-modalClose').trigger('click');
+	}
+});
+
+	// カートに追加、在庫有りのみカートに追加、巻数を指定してカートに追加する
+	$(document).on('click', '.jsBtn-cart', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		var age_limit = $(this).attr('data-agelimit') ?? '';
+		if (mode == 'disabled') {
+			return false;
+		}
+		if ((mode == 'Add') || (mode == 'AddSet') || (mode == 'AddSetInStock')) {
+			// 在庫有りのみカートに追加の場合、複数回クリック不許可
+			$(this).attr('data-mode', 'disabled');
+		}
+		var ex_param = {};
+		if (mode == 'Add') {
+			ex_param['stockType'] = $(this).attr('data-stock') ?? '';
+		}
+		if (mode == 'AddSelectedItems') {
+			var selectItemIds = {};
+			$('input[type="checkbox"].js-allCheckTarget:checked').each(function(index){
+				selectItemIds[index] = $(this).closest('.productSetItem__checkbox').find('input.item_id').val() ?? '';
+			});
+			ex_param['selectItemIds'] = selectItemIds;
+		}
+		if(age_limit == 1) {
+			ageVerification('cart', mode, item_id, ex_param);
+		} else {
+			ajaxConfig('cart', mode, item_id, ex_param);
+		}
+	});
+	// お気に入り追加・削除
+	$(document).on('click', '.jsBtn-favorite', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		var age_limit = $(this).attr('data-agelimit') ?? '';
+		if(age_limit == 1) {
+			ageVerification('favorite', mode, item_id);
+		} else {
+			ajaxConfig('favorite', mode, item_id);
+		}
+	});
+	// 入荷お知らせ追加・削除、全巻入荷お知らせ追加・削除
+	$(document).on('click', '.jsBtn-arrival', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		var age_limit = $(this).attr('data-agelimit') ?? '';
+		if(age_limit == 1) {
+			ageVerification('arrival', mode, item_id);
+		} else {
+			ajaxConfig('arrival', mode, item_id);
+		}
+	});
+	// 値下げのお知らせ追加・削除
+	$(document).on('click', '.jsBtn-discount', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		var ex_param = {};
+		ex_param['price'] = $(this).attr('data-price') ?? 0;
+
+		if (mode == 'Add_PriceChange' || mode == 'PriceChange'){
+		    ex_param['targetPrice'] = $('#modal #discountAlert input[name="discountAlert"]').val() ?? 0;
+			if (ex_param['targetPrice'] == 0 || ex_param['targetPrice'] == '') {
+				discountModalError('1円以上で入力してください');
+			} else if (parseInt(ex_param['targetPrice']) >=  parseInt(ex_param['price'])) {
+				if (item_id.slice(0, 2) == '88') {
+					discountModalError('定価合計価格より小さい金額を入力してください');
+				} else {
+					discountModalError('中古価格より小さい金額を入力してください');
+				}
+			} else if (!ex_param['targetPrice'].match(/^[0-9]+$/)) {
+				discountModalError('半角数字で入力してください');
+			} else {
+				// 「0」埋めの入力は頭削除して登録
+				if (ex_param['targetPrice'].match(/^0+/)) {
+					ex_param['targetPrice'] = new Intl.NumberFormat('ja-JP').format(ex_param['targetPrice']);
+				}
+				ajaxConfig('discount', mode, item_id, ex_param);
+			}
+		} else if(mode == 'Add') {
+		    ex_param['targetPrice'] = $(this).attr('data-target-price') ?? 0;
+			ajaxConfig('discount', mode, item_id, ex_param);
+		} else if(mode == 'Delete') {
+			ajaxConfig('discount', mode, item_id);
+		}
+	});
+	// 最新刊のお知らせ追加・削除
+	$(document).on('click', '.jsBtn-latests', function(event){
+		event.preventDefault();
+		var mode = $(this).attr('data-mode') ?? '';
+		var item_id = $(this).attr('data-item') ?? '';
+		ajaxConfig('latests', mode, item_id);
+	});
+
+	// 在庫ない商品一覧表示確認モーダル
+	$(document).on('click', '.jsBtn-cart-modal', function(event){
+		event.preventDefault();
+		$('#modalSetAddCart ul.modalSetAddCart__list').empty();
+		var item_id = $(this).attr('data-item');
+		ajaxConfig('cart', 'RewriteSetModal', item_id);
+	});
+
+	// 値下げのお知らせ価格設定変更モーダル
+	$(document).on('click', '.jsBtn-discount-modal', function(event){
+		event.preventDefault();
+		var item_id = $(this).attr('data-item') ?? '';
+		var price = $(this).attr('data-price') ?? '';
+		var target_price = $(this).attr('data-target-price') ?? '';
+		var modal = $(this).attr('data-modal') ?? '';
+
+		if (modal = 'discountAlert') {
+			if (class_name == 'BocAlertMailList') {
+				$('#modal #discountAlert .jsBtn-discount').attr('data-item', item_id);
+				$('#modal #discountAlert .jsBtn-discount').attr('data-price', price);
+				$('#modal #discountAlert .jsBtn-discount').attr('data-target-price', target_price);
+
+				if (item_id.slice(0, 2) == '88') {
+					$('.modalConfirm__regularPrice').show();
+				}else {
+					$('.modalConfirm__regularPrice').hide();
+				}
+
+				$('#modal #discountAlert #discount-market-price').text(price.toLocaleString());
+				$('#modal #discountAlert #discount-target-price').text(target_price.toLocaleString());
+			}
+			$('#modal').addClass('-show -visible');
+			$('#modal #discountAlert').addClass('-show');
+
+		} else if (modal = 'discountAlertCancel') {
+			if (class_name == 'BocAlertMailList') {
+				$('#modal #discountAlert .jsBtn-discount').attr('data-item', item_id);
+			}
+			$('#modal').addClass('-show -visible');
+			$('#modal #discountAlertCancel').addClass('-show');
+		}
+	});
+
+	$(document).on('click', '.js-modalClose', function(event){
+		event.preventDefault();
+		if ($('#modal #discountAlert').hasClass('-show')) {
+			initializeDiscountModal();
+		}
+	});
+	$(document).on('click', '.modal__overlay', function(event){
+		if ($('#modal #discountAlert').hasClass('-show')) {
+			initializeDiscountModal();
+		}
+	});
+
+	function initializeDiscountModal () {
+		$('#modal #discountAlert input[name="discountAlert"]').removeClass('-error');
+		$("#modal #discountAlert .modalConfirm__error").hide();
+		$("#modal #discountAlert .modalConfirm__error").text('');
+		$('#modal').removeClass('-show -visible');
+		$('#modal #discountAlert').removeClass('-show');
+		$('#modal #discountAlert input[name="discountAlert"]').val('');
+	}
+
+	function discountModalError (str) {
+		$('#modal #discountAlert input[name="discountAlert"]').addClass('-error');
+		$("#modal #discountAlert .modalConfirm__error").show();
+		$("#modal #discountAlert .modalConfirm__error").text(str);
+	}
+</script><script>
+	function ageVerification(type, mode, item_id, ex_param={}){
+		var send_data = {
+						'className': class_name
+						, 'blockId': 728352
+						, 'pageId': 1316
+						, 'revision': 0
+						, 'type': 'ageVerification'
+						, 'mode': 'Agree'
+						, 'itemId': item_id
+					};
+		ajax_jquery({
+			url: "/view_interface.php",
+			type : "POST",
+			data : send_data,
+			dataType : "json"
+		})
+		.done(function(data, textStatus, jqXHR){
+			if (data.status == 'OK') {
+			// 検索一覧内のボタンをすべて書き換え
+				$('.js-ageverification').each(function() {
+					elmType = $(this).attr('data-type');
+					if (elmType == 'cart') {
+						var btnClass = 'jsBtn-cart';
+					} else if (elmType == 'favorite') {
+						var btnClass = 'jsBtn-favorite';
+					} else if (elmType == 'arrival') {
+						var btnClass = 'jsBtn-arrival';
+					}
+					$(this).addClass(btnClass);
+				});
+				$('.js-ageverification').addClass('ac-click-cv');
+				$('.js-ageverification').removeAttr('data-type');
+				$('.js-ageverification').removeAttr('data-modal');
+				$('.js-ageverification').removeClass('js-modal js-ageverification');
+
+				// モーダルを閉じる
+				$('.modal__inner').removeClass('-show');
+				$('#modal').removeClass('-visible -show');
+				$('body').removeClass('-modalOpen');
+				$('html').removeAttr('data-whatelement data-whatclasses');
+				// モーダルのDOM要素を削除
+				$('[id^="modalAgeVerification"]').remove();
+				// ajaxConfig 実行
+				ajaxConfig(type, mode, item_id, ex_param);
+			} else if (data.status == 'FAILED_AGE_VERIFICATION') {
+				var errMsg = 'エラーにより年齢認証が完了出来ませんでした。';
+				$('.ageVerificationBlock__txt--error').text(errMsg);
+				$('.ageVerificationBlock__txt--error').show();
+				return false;
+			} else {
+				var errMsg = 'エラーにより年齢認証が完了出来ませんでした。';
+				$('.ageVerificationBlock__txt--error').text(errMsg);
+				$('.ageVerificationBlock__txt--error').show();
+				return false;
+			}
+		})
+		.fail(function(jqXHR, textStatus, errorThrown){
+			var errMsg = 'エラーにより年齢認証が完了出来ませんでした。';
+			$('.ageVerificationBlock__txt--error').text(errMsg);
+			$('.ageVerificationBlock__txt--error').show();
+			return false;
+		});
+	}
+
+	function ajaxConfig(type, mode, item_id, ex_param={}){
+		var send_data = {
+						'className': class_name
+						, 'blockId': 728352
+						, 'pageId': 1316
+						, 'revision': 0
+						, 'type': type
+						, 'mode': mode
+						, 'itemId': item_id
+						, 'exParam' : ex_param
+					};
+
+		ajax_jquery({
+			url: "/view_interface.php",
+			type : "POST",
+			data : send_data,
+			dataType : "json"
+		})
+		.done(function(data, textStatus, jqXHR){
+			if (data.status == 'OK') {
+				// カートに追加
+				if (type == 'cart') {
+					thisId = '.jsBtn-cart[data-item="' + item_id + '"]';
+					thisItemBtnId = '.jsBtn-cart-modal[data-item="' + item_id + '"]';
+
+					if (mode == 'AddSet' || mode == 'AddSelectedItems') {
+						if (class_name == 'BocProductSet') {
+							var checkNum = 0;
+							$('.js-allCheckTarget').each(function(){
+								if ($(this).prop('checked')) {
+									checkNum++;
+								}
+							});
+							if (checkNum == 0) {
+								window.location.href = '/cart/';
+							}
+						}
+					}
+
+					if (mode == 'Add' || mode == 'AddSet' || mode == 'AddSelectedItems') {
+						if (class_name == 'BocRankingOfWeekList' || class_name == 'BocProduct' || class_name == 'BocProductSet') {
+							window.location.href = '/cart/';
+						} else if (class_name == 'BocSearchResult') {
+							// カートを見るボタンに変更
+							sourceObj = $(thisId);
+							targetObj = $('<a>');
+							sourceObj.removeClass('jsBtn-cart');
+							sourceObj.addClass('-added');
+							targetObj.attr('href', '/cart/');
+							targetObj.text(' カートを見る ');
+							$.each(sourceObj[0].attributes, function() {
+								targetObj.attr(this.name, this.value);
+							});
+							sourceObj.replaceWith(targetObj);
+						} else {
+							$(thisId).attr('href', '/cart/');
+							$(thisId).addClass('-added');
+							$(thisId).text(' カートを見る ');
+							$(thisId).removeClass('jsBtn-cart');
+						}
+					} else if (mode == 'AddSetInStock') {
+						if (class_name == 'BocRankingOfWeekList') {
+							window.location.href = '/cart/';
+						} else if (class_name == 'BocSetSearchResult') {
+							$(thisItemBtnId).addClass('-added');
+							$(thisItemBtnId).text(' カートを見る ');
+							$(thisItemBtnId).attr('data-modal', '');
+							$(thisItemBtnId).attr('data-mode', '');
+							$(thisItemBtnId).off('click');
+							$(thisItemBtnId).attr('href', '/cart/');
+							$(thisItemBtnId).removeClass('jsBtn-cart-modal btn--2l js-modal');
+							// モーダルを閉じる
+							$('.modal__overlay').trigger('click');
+						}
+					} else if (mode == 'RewriteSetModal') {
+						$('#modalSetAddCart .jsBtn-cart').attr('data-item', item_id).attr('data-mode', 'AddSetInStock');
+						$('#modalSetAddCart .modal__title span').text(data.stock_count);
+						for (var i in data.no_stock_items) {
+							var liText = '<li class="modalSetAddCart__item">' + data.no_stock_items[i].item_name + '</li>';
+							$('#modalSetAddCart ul.modalSetAddCart__list').append(liText);
+						}
+						$('#modalSetAddCart .js-modalInnerContent').css('height','500px');
+					}
+				}
+				// お気に入り
+				if (type == 'favorite') {
+					thisId = '.jsBtn-favorite[data-item="' + item_id + '"]';
+					if (mode == 'Add') {
+						if (data.message) {
+							click_ele = $(thisId);
+							displayTooltip(click_ele, type, data.message);
+						}
+						$(thisId + ' span:first-of-type').removeClass('icon-favorite icon-favorite-dims');
+						$(thisId + ' span:first-of-type').addClass('icon-favorite-on icon-favorite-on-dims');
+						if (class_name == 'BocProduct') { // SPのみ
+							$('.forSp > ' + thisId).removeClass('icon-favorite icon-favorite-dims');
+							$('.forSp > ' + thisId).addClass('icon-favorite-on icon-favorite-on-dims');
+						}
+						$(thisId + ' span:nth-of-type(2)').text('お気に入り追加済');
+						$(thisId).attr('data-mode', 'Delete');
+						if (class_name == 'BocSearchResult') {
+							$(thisId).attr('data-cv-name', 'delBookmark_Search');
+						} else if (class_name == 'BocSetSearchResult') {
+							$(thisId).attr('data-cv-name', 'delSetMail_Search');
+						} else if (class_name == 'BocProduct') {
+							$(thisId).attr('data-cv-name', 'delBookmark_Detail');
+						}
+					}
+					if (mode == 'Delete') {
+						$(thisId + ' span:first-of-type').removeClass('icon-favorite-on icon-favorite-on-dims');
+						$(thisId + ' span:first-of-type').addClass('icon-favorite icon-favorite-dims');
+						if (class_name == 'BocProduct') { // SPのみ
+							$('.forSp > ' + thisId).removeClass('icon-favorite-on icon-favorite-on-dims');
+							$('.forSp > ' + thisId).addClass('icon-favorite icon-favorite-dims');
+						}
+						$(thisId + ' span:nth-of-type(2)').text('お気に入り追加');
+						$(thisId).attr('data-mode', 'Add');
+						if (class_name == 'BocSearchResult') {
+							$(thisId).attr('data-cv-name', 'addBookmark_Search');
+						} else if (class_name == 'BocSetSearchResult') {
+							$(thisId).attr('data-cv-name', 'addSetMail_Search');
+						} else if (class_name == 'BocProduct') {
+							$(thisId).attr('data-cv-name', 'addBookmark_Detail');
+						}
+					}
+				}
+				// 入荷お知らせ
+				if (type == 'arrival') {
+					thisId = '.jsBtn-arrival[data-item="' + item_id + '"]';
+					if (mode == 'Add' || mode == 'AddSet') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--gray');
+							$(thisId).addClass('btn--blue');
+							$(thisId).text(' 解除する ');
+							$(thisId).attr('data-mode', 'Delete');
+						} else {
+							if (data.message) {
+								click_ele = $(thisId);
+								displayTooltip(click_ele, type, data.message);
+							}
+							$(thisId).addClass('-added');
+							if (class_name == 'BocProduct' || class_name == 'BocProductSet') {
+								$(thisId).text('入荷お知らせを解除する');
+								$(thisId).attr('data-mode', 'Delete');
+							} else if (mode == 'AddSet') {
+								$(thisId).text('登録を解除する');
+								$(thisId).attr('data-mode', 'DeleteSet');
+							} else if (mode == 'Add') {
+								$(thisId).text('登録を解除する');
+								$(thisId).attr('data-mode', 'Delete');
+							}
+							if (class_name == 'BocSearchResult') {
+								$(thisId).attr('data-cv-name', 'delAlertMail_Search');
+							} else if (class_name == 'BocSetSearchResult') {
+								$(thisId).attr('data-cv-name', 'delSetMail_Search');
+							} else if (class_name == 'BocProduct') {
+								$(thisId).attr('data-cv-name', 'delAlertlMail_Detail');
+							} else if (class_name == 'BocProductSet') {
+								$(thisId).attr('data-cv-name', 'delSetMail_Detail');
+							} else if (class_name == 'BocRankingOfWeekList') {
+								$(thisId).attr('data-cv-name', 'delSetMail_Ranking');
+							}
+						}
+					} else if (mode == 'Delete' || mode == 'DeleteSet') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--blue');
+							$(thisId).addClass('btn--gray');
+							$(thisId).text(' 再設定 ');
+							$(thisId).attr('data-mode', 'Add');
+						} else {
+							$(thisId).removeClass('-added');
+							if (class_name == 'BocProduct' || class_name == 'BocProductSet') {
+								$(thisId).text('入荷のお知らせを受け取る');
+								$(thisId).attr('data-mode', 'Add');
+							} else if (mode == 'DeleteSet') {
+								$(thisId).text('全巻入荷お知らせ');
+								$(thisId).attr('data-mode', 'AddSet');
+							} else if (mode == 'Delete') {
+								$(thisId).text('入荷お知らせ');
+								$(thisId).attr('data-mode', 'Add');
+							}
+							if (class_name == 'BocSearchResult') {
+								$(thisId).attr('data-cv-name', 'addAlertlMail_Search');
+							} else if (class_name == 'BocSetSearchResult') {
+								$(thisId).attr('data-cv-name', 'addSetMail_Search');
+							} else if (class_name == 'BocProduct') {
+								$(thisId).attr('data-cv-name', 'addAlertlMail_Detail');
+							} else if (class_name == 'BocProductSet') {
+								$(thisId).attr('data-cv-name', 'addSetMail_Detail');
+							} else if (class_name == 'BocRankingOfWeekList') {
+								$(thisId).attr('data-cv-name', 'addSetMail_Ranking');
+							}
+						}
+					}
+				}
+				// 値下げお知らせ
+				if (type == 'discount') {
+					thisId = '.jsBtn-discount[data-item="' + item_id + '"]';
+					thisItemBtnId = '.jsBtn-discount-modal[data-item="' + item_id + '"]';
+					if (mode == 'Add') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--gray');
+							$(thisId).addClass('btn--blue');
+							$(thisId).text(' 解除する ');
+							$(thisId).attr('data-mode', 'Delete');
+						}
+					}
+					if (mode == 'PriceChange') {
+						if (class_name == 'BocAlertMailList') {
+							initializeDiscountModal();
+							$('#modal #discountAlert .jsBtn-discount').attr('data-item', '');
+							$('#modal #discountAlert .jsBtn-discount').attr('data-price', '');
+							var thisItemBtnId = '.jsBtn-discount-modal[data-item="' + item_id + '"]';
+							var targetPrice = ex_param['targetPrice'];
+							$(thisItemBtnId).attr('data-target-price', targetPrice);
+							$('#discount-target-price-' + item_id).text(targetPrice.toLocaleString());
+						}
+					}
+					if (mode == 'Add_PriceChange') {
+						if (class_name == 'BocProduct' || class_name == 'BocProductSet') {
+							$(thisItemBtnId + ' span:nth-of-type(2)').text('値下げのお知らせを登録済');
+							$(thisItemBtnId).attr('data-modal','discountAlertCancel');
+							$(thisItemBtnId).attr('data-mode', 'Delete');
+							// モーダルを閉じる
+							initializeDiscountModal();
+							if (class_name == 'BocProductSet') {
+								$(thisItemBtnId).attr('data-cv-name', 'delSetMailPriceDown_Detail');
+							}
+						}
+					}
+					if (mode == 'Delete') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--blue');
+							$(thisId).addClass('btn--gray');
+							$(thisId).text(' 再設定 ');
+							$(thisId).attr('data-mode', 'Add');
+						} else if (class_name == 'BocProduct' || class_name == 'BocProductSet') {
+							$(thisItemBtnId + ' span:nth-of-type(2)').text('値下げのお知らせを受け取る');
+							$(thisItemBtnId).attr('data-modal','discountAlert');
+							$(thisItemBtnId).attr('data-mode', 'Add');
+							// モーダルを閉じる
+							$('#modal').removeClass('-show -visible');
+							$('#modal #discountAlertCancel').removeClass('-show');
+							if (class_name == 'BocProductSet') {
+								$(thisItemBtnId).attr('data-cv-name', 'addSetMailPriceDown_Detail');
+							}
+						}
+					}
+				}
+				// 最新刊お知らせ
+				if (type == 'latests') {
+					thisId = '.jsBtn-latests[data-item="' + item_id + '"]';
+					if (mode == 'Add') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--gray');
+							$(thisId).addClass('btn--blue');
+							$(thisId).text(' 解除する ');
+							$(thisId).attr('data-mode', 'Delete');
+						} else {
+							$(thisId + ' span:nth-of-type(2)').text('最新刊のお知らせを登録済');
+							$(thisId).attr('data-mode', 'Delete');
+							if (class_name == 'BocProductSet') {
+								$(thisId).attr('data-cv-name', 'delNewAlertMail_Detail');
+							}
+						}
+					} else if (mode == 'Delete') {
+						if (class_name == 'BocAlertMailList') {
+							$(thisId).removeClass('btn--blue');
+							$(thisId).addClass('btn--gray');
+							$(thisId).text(' 再設定 ');
+							$(thisId).attr('data-mode', 'Add');
+						} else {
+							$(thisId + ' span:nth-of-type(2)').text('最新刊のお知らせを受け取る');
+							$(thisId).attr('data-mode', 'Add');
+							if (class_name == 'BocProductSet') {
+								$(thisId).attr('data-cv-name', 'addNewAlertMail_Detail');
+							}
+						}
+					}
+				}
+			// 在庫なし、もしくは、何らかの原因でカート未追加
+			} else if (data.status == 'NO_STOCK' || data.status == 'FAILED_TO_CART') {
+				if (type == 'cart') {
+					// 他のモーダル開いてたら閉じる
+					if ($('.js-modalInner').hasClass('-show')) {
+						$('#modal').removeClass('-show -visible');
+						$('.js-modalInner').removeClass('-show');
+					}
+					// カートに追加できませんでしたモーダルを開く
+					if($('#modalCartAddStock0').length){
+						if (data.status == 'NO_STOCK' || data.error_code == 'OC456') {
+							$('#modalCartAddStock0 .js-cart-alert').text('在庫がなくなったため、商品をカートに追加できませんでした。再読み込みしてページを更新します');
+						} else {
+							$('#modalCartAddStock0 .js-cart-alert').text('現在お取り扱いのない商品が含まれるため、カートに追加できませんでした。再読み込みしてページを更新します');
+						}
+						$('[data-modal="modalCartAddStock0"]').trigger("click");
+					}
+					// disabledにしたカートボタンを元に戻す
+					if ((mode == 'Add') || (mode == 'AddSet') || (mode == 'AddSetInStock')) {
+						thisId = '.jsBtn-cart[data-item="' + item_id + '"]';
+						if($(thisId).attr('data-mode') == 'disabled') {
+							$(thisId).attr('data-mode', mode);
+						}
+					}
+				}
+			// 何らかの原因で処理未完了
+			} else if (data.status == 'NG') {
+				if (type == 'favorite') {
+					if (mode == 'Add') {
+						if (data.message) {
+							click_ele = $('.jsBtn-favorite[data-item="' + item_id + '"]');
+							displayTooltip(click_ele, type, data.message);
+						}
+					}
+				}
+			// 未ログインもしくはAPIエラー
+			} else if (data.status == 'NO_LOGIN' || data.status == 'API_ERROR') {
+				window.location.href = data.url;
+			} else {
+				alert("エラーが発生しました。もう一度設定してください。");
+			}
+		})
+		.fail(function(jqXHR, textStatus, errorThrown){
+			alert("エラーが発生しました。");
+		});
+	}
+
+	function displayTooltip(click_ele_selector, btnType, message) {
+		var display_time = 2500;
+		var click_ele = $(click_ele_selector);
+		var original_width = click_ele.outerWidth();
+		// wrap
+		if(!click_ele.parent().hasClass('tipsBalloonArea')){
+			click_ele.each(function() {
+				var self = jQuery(this);
+				var area = jQuery('<div class="tipsBalloonArea"></div>').css({
+					'width': '100%',
+					'margin': self.css('margin'),
+					'margin-bottom': '0'
+				});
+				self.wrap(area);
+			});
+		}
+		// ツールチップHTML
+		var html = '';
+		var isProductPage = !click_ele.hasClass('productItem__favorite');
+		if (isProductPage) {
+			click_ele.parent().addClass('tipsBalloonAreaProductPage');
+			html = '<div class="tipsBalloon tipsBalloon--favorite tipsBalloonFavoriteProductPage"><span class="tipsBalloonTxt">' + message + '</span></div>';
+		} else if (btnType === 'favorite'){
+			html = '<div class="tipsBalloon tipsBalloon--favorite"><span class="tipsBalloonTxt">' + message + '</span></div>';
+		} else if(btnType === 'arrival') {
+			html = '<div class="tipsBalloon tipsBalloon--tail-center"><span class="tipsBalloonTxt">' + message + '</span></div>';
+		}
+		// ツールチップ生成・幅設定・表示
+		var tooltip_ele = $(html).insertBefore(click_ele).hide();
+		if(btnType == 'arrival'){
+			// 入荷お知らせの時のみ調整
+			click_ele.closest('.tipsBalloonArea').each(function() {
+				var self = $(this);
+				if (self.parent().hasClass('cartFloat__btn')) {
+					self.css('position', 'unset');
+				}
+				self.children('.tipsBalloon').css({
+					'min-width': self.children('.jsBtn-arrival').outerWidth(),
+					'bottom': self.children('.jsBtn-arrival').outerHeight() * 1.5,
+					'right': 'unset'
+				});
+			});
+		}
+		tooltip_ele.show();
+		setTimeout(function() {
+			tooltip_ele.fadeOut(200);
+			tooltip_ele.remove();
+			// unwrap
+			if(click_ele.parent().hasClass('tipsBalloonArea')){
+				click_ele.unwrap();
+			}
+		}, display_time);
+	}
+</script>
+<script >
+window.headerMenuInfo = window.headerMenuInfo || {
+	pageId: "1316",
+	blockId: "751263"
+};
+</script>
+<script type="text/javascript">
+const _boud={};
+</script>
+<meta property="og:site_name" content="ブックオフ公式オンラインストア" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://shopping.bookoff.co.jp/library/common/images/ogp.webp" />
+<meta property="og:title" content="検索一覧  | ブックオフ公式オンラインストア" />
+<meta property="og:description" content="" />
+<meta property="og:url" content="https://shopping.bookoff.co.jp/search/keyword/9784000000000" />
+<link rel="canonical" href="https://shopping.bookoff.co.jp/search/keyword/9784000000000">
+
+<script>const _isLogin = false;const _isApp=(function(){const uaList='BookoffApp';const userAgent=navigator.userAgent;return userAgent.includes(uaList)})();</script>
+<link rel="stylesheet" type="text/css" href="/library/init/css/publis4-default.css" />
+<link rel="stylesheet" type="text/css" href="/library/common/css/mainContent__product.css" />
+<script  src="/library/common/js/modal-adjust.js"></script>
+<link rel="stylesheet" type="text/css" href="/library/common/css/mainContent__search.css" />
+<link rel="stylesheet" type="text/css" href="https://content.bookoff.co.jp/assets/css/search/parts.css?rev=20240516" />
+<script  src="https://content.bookoff.co.jp/assets/js/common/search.js?rev=20250603"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/common/parts.js"></script>
+<link rel="stylesheet" type="text/css" href="https://content.bookoff.co.jp/assets/css/common/search.css?rev=20260604" />
+<link rel="stylesheet" type="text/css" href="" />
+<link rel="stylesheet" type="text/css" href="https://content.bookoff.co.jp/assets/css/search/normal/parts.css?rev=20260602" />
+<script  src="https://content.bookoff.co.jp/assets/js/search/normal/parts.js?rev=20260707"></script>
+</head>
+<body>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-T8MGMLD');</script>
+<!-- End Google Tag Manager -->
+<script src="https://d.adlpo.com/687/2212/js/smartadlpo.js"></script>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T8MGMLD" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<script  src="https://content.bookoff.co.jp/assets/js/common/components.js"></script>
+<noscript><p>このページではjavascriptを使用しています。</p></noscript>
+<div id="page" class="pbPage">
+<div id="headerArea" class="pbHeaderArea">
+	<div id="area1" class="pbArea ">
+		<div class="pbNested " >
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock10023">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock162219">
+						
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock162220">
+						<style type="text/css">
+/* 宅配買取ボタン */
+/* common.css */
+.header__menuSell.sellBtn {
+  display: block;
+  padding: 3px 20px;
+  background-color: #fff000;
+  border: 1px solid #fff000;
+  border-radius: 99px;
+  color: #003894;
+  font-weight: bold;
+  font-size: 16px;
+}
+.header__menuSell {
+  margin-left: 8px;
+}
+/* headerFooter.css */
+.header__menu ul {
+  align-items: center;
+}
+</style>
+<div class="header js-header" id="header">
+  <div class="header__wrap js-headerFixed" style="">
+    <div class="header__inner">
+      <div class="header__logoWrap js-headerLogo">
+
+        <div class="header__logo">
+          <a href="/" class="header__logo__img">
+            <img src="/library/common/images/img-logo.png" alt="BOOKOFF">
+          </a>
+          <div class="header__logo__more">
+            <a class="js-headerLogoBtn" href="/"></a>
+          </div>
+        </div>
+        <div class="header__logoContent js-headerLogoContent">
+          <div class="header__logoContentUserGuide">
+            <a href="https://support-online.bookoff.co.jp">ヘルプ・ご質問</a>
+          </div>
+          <div class="header__logoContentHeader">
+            <a href="https://www.bookoff.co.jp/">BOOKOFF公式サイト</a>
+          </div>
+          <ul>
+            <li>
+              <a href="https://www.bookoff.co.jp/shop/" class="header__linkStore">店舗検索</a>
+            </li>
+            <li>
+              <a href="https://sell.bookoff.co.jp/" class="header__linkPurchase">買取はこちら</a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+      <nav class="header__navi">
+        <div class="header__naviTop">
+          <div class="header__search js-headerSearch">
+            <div class="header__searchInner">
+              <form name="zsForm" id="zsSearchForm" class="header__searchForm">
+                <input id="zsSearchFormInput" type="search" enterkeyhint="search" name="kw_sn" placeholder="キーワード・品番で検索" autocomplete="off" class="zs-search-input" id="zsSearchFormInput">
+                <span class="header__searchIcon">
+                  <img src="/library/common/svg/search-gray.svg" alt="">
+                </span>
+                <span class="header__searchFormClear">
+                  <img src="/library/common/svg/search-clear.svg" alt="" id="zsSearchClearButton">
+                </span>
+              </form>
+              <div class="header__searchHistory" id="zsHistoryArea">
+                <div class="header__searchHistoryHeading">検索履歴</div>
+                <ul class="js-searchHistory" id="zsSearchHistoryAreaUl">
+                  <li>
+                  </li>
+                </ul>
+              </div>
+              <!-- /header__searchHistory -->
+              <div class="header__searchSuggest" id="zsSuggestDiv">
+                <ul class="js-searchSuggest">
+                  <li>
+                  </li>
+                </ul>
+              </div>
+              <!-- /header__searchSuggest -->
+            </div>
+          </div>
+          <div class="header__menu">
+                        <ul>
+                <li>
+                  <a class="header__menuSell sellBtn" href="https://sell.bookoff.co.jp/">宅配買取</a>
+                </li>
+                <li>
+                    <a href="https://my.bookoff.co.jp/wishlist"><img src="/library/common/svg/favorite-blue.svg" alt=""></a>
+                </li>
+                <li>
+                    <div class="header__menuAccount js-headerAccount">
+                        <a href="" class=" js-headerAccountBtn"><img src="/library/common/svg/account.svg" alt=""></a>
+                        <div class="header__menuAccountContent js-headerAccountContent">
+                                                            <div class="header__loginBtn">
+                                    <ul>
+                                        <li><a class="btn btn--blue" href="https://my.bookoff.co.jp/login">ログイン</a></li>
+                                        <li><a class="btn btn--orange" href="https://my.bookoff.co.jp/register/entry">新規会員登録</a></li>
+                                    </ul>
+                                </div>
+                                                    </div>
+                    </div>
+                </li>
+                <li>
+                    <a href="/cart" ><img src="/library/common/svg/cart.svg" alt="Cart"></a>
+                </li>
+            </ul>
+                      </div>
+        </div>
+        <div class="header__category js-headerCategory">
+          <ul>
+            <li><a href="/book">書籍</a></li>
+            <li><a href="/comic">コミック</a></li>
+            <li><a href="/cd">CD</a></li>
+            <li><a href="/dvdbd">DVD・ブルーレイ</a></li>
+            <li><a href="/game">ゲーム</a></li>
+            <li><a href="/set">セット・まとめ買い</a></li>
+          </ul>
+        </div>
+      </nav>
+
+            <div class="header__naviSp">
+        <div class="header__naviTopSp">
+          <div class="header__menuBtnSp js-spMenuBtn">
+            <img src="/library/common/svg/menu.svg" alt="メニュー">
+          </div>
+          <div class="header__menuSp">
+            <a href="https://my.bookoff.co.jp/wishlist"><img src="/library/common/svg/favorite-blue.svg" alt=""></a>
+            <a href="/cart" ><img src="/library/common/svg/cart.svg" alt=""></a>
+          </div>
+        </div>
+      </div>
+      
+    </div><!-- /header__inner -->
+  </div><!-- /header__wrap -->
+</div><!-- /header js-header -->
+
+<div class="spHeaderMenu js-spHeaderMenu">
+  <div class="spHeaderMenu__close">
+    <span class="js-spHeaderMenuClose" tabindex="0">
+      <img src="/library/common/svg/close.svg" alt="close">
+    </span>
+  </div>
+  <div class="spHeaderMenu__inner">
+
+        <div class="spHeaderMenu__loginBtn">
+        <ul>
+            <li><a class="btn btn--blue" href="https://my.bookoff.co.jp/login">ログイン</a></li>
+            <li><a class="btn btn--orange" href="https://my.bookoff.co.jp/register/entry">新規会員登録</a></li>
+        </ul>
+    </div>
+    
+    <div class="spHeaderMenu__heading">カテゴリ</div>
+    <div class="spHeaderMenu__list">
+      <ul>
+        <li><a href="/book">書籍</a></li>
+        <li><a href="/comic">コミック</a></li>
+        <li><a href="/cd">CD</a></li>
+        <li><a href="/dvdbd">DVD・ブルーレイ</a></li>
+        <li><a href="/game">ゲーム</a></li>
+        <li><a href="/set">セット・まとめ買い</a></li>
+      </ul>
+    </div>
+    <div class="spHeaderMenu__list">
+      <ul class="spHeaderMenu__listUserGuide">
+      <li><a href="https://support-online.bookoff.co.jp">ヘルプ・ご質問</a></li>
+      </ul>
+    </div>
+    <a class="spHeaderMenu__linkStore" href="https://www.bookoff.co.jp/">BOOKOFF公式サイト</a>
+    <a class="spHeaderMenu__linkSearch" href="https://www.bookoff.co.jp/shop/">店舗検索</a>
+    <a class="spHeaderMenu__linkPurchase" href="https://sell.bookoff.co.jp/">買取はこちら</a>
+  </div>
+</div>
+<div class="spHeaderMenuOverlay js-spHeaderMenuClose">&nbsp;</div>
+<script type="text/javascript">
+$(document).ready(function () {
+	$('.logout-link').on('click', function() {
+		const logoutUrl="https://my.bookoff.co.jp/logout";
+		ajax_jquery(logoutUrl)
+		.done(function() {
+			const loginUrl="https://my.bookoff.co.jp/login";
+			window.location.href=loginUrl;
+		})
+		.fail(function(e) {
+			let errUrl="/err/404";
+			switch(true){
+				case e.status==502:
+					errUrl="/err/408";
+					break;
+				case e.status>=500:
+					errUrl="/err/500";
+					break;
+			}
+			window.location.href=errUrl;
+		});
+	});
+});
+
+  // point
+  window.loadPoint = function() {
+    const send_data = {
+      "className": "BocHeaderMenu",
+      "blockId": window.headerMenuInfo.blockId,
+      "pageId": window.headerMenuInfo.pageId,
+      "revision": 0,
+      "type": "loadPoint"
+    };
+    ajax_jquery({
+      url: "/view_interface.php",
+      type: "POST",
+      data: send_data,
+      dataType: "json"
+    })
+    .done(function(data, textStatus, jqXHR) {
+      document.querySelectorAll("div.js-headerAccountContent .header__point,div.js-spHeaderMenu .spHeaderMenu__point")
+        .forEach(el => {
+          el.innerHTML = (data.point || "-") + "<span>P</span>";
+        });
+    });
+  }
+</script>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock162458">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock145581">
+						<div class="headerMessage">
+    	<div class="headerMessage__text">1,800円以上の注文で<span class="headerMessage__textDecoration">送料無料</span></div>
+  </div>
+			</div>
+		</div>
+
+			</div>
+		</div>
+	</div>
+
+</div><div id="areaWrapper1" class="pbAreaWrapper1"><div id="areaWrapper2" class="pbAreaWrapper2"><div id="mainArea" class="pbMainArea">
+	<div id="area0" class="pbArea ">
+		<div class="pbNested " >
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock259613">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock435867">
+						<div class="commonBnr">
+  <div class="commonBnr__inner">
+          <a href="https://shopping.bookoff.co.jp/campaign/19th"  class="commonBnr__link ">
+      <figure class="commonBnr__fig">
+                    <img src="https://content.bookoff.co.jp/assets/images/1200x60/campaign/19th.webp" alt="オンラインストア19周年記念キャンペーン お得なクーポンプレゼント！8月1日(土)まで" width="2400" height="120" title="オンラインストア19周年記念キャンペーン お得なクーポンプレゼント！8月1日(土)まで" class="forPc">
+                            <img src="https://content.bookoff.co.jp/assets/images/375x60/campaign/19th.webp" alt="オンラインストア19周年記念キャンペーン お得なクーポンプレゼント！8月1日(土)まで" width="750" height="120" title="オンラインストア19周年記念キャンペーン お得なクーポンプレゼント！8月1日(土)まで" class="forSp">
+              </figure>
+    </a>
+        </div>
+</div>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock10018">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock314591">
+						<div class="campaign campaign--for2col forPc">
+  <div class="campaign__inner">
+          <a class="campaign__items" href="https://shopping.bookoff.co.jp/campaign/20260710-sale">
+      <div class="campaign__item">
+                  <span class="campaign__item__tag infoicon-sale">セール</span>
+              </div>
+      <div class="campaign__item">
+        <span class="campaign__item__ttl"> CD&DVD・ブルーレイSALE 2026/07/23(木)23:59まで</span>
+              </div>
+    </a>
+                                                                                                                                                  </div>
+</div>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="mainContent pbNested pbNestedWrapper "  id="pbBlock10011">
+								<div class="pbNested " >
+			<div class="mainContent__inner pbNested pbNestedWrapper "  id="pbBlock10012">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock10027">
+						<div class="mainContent__search">
+  <div class="mainContent__col">
+    <div class="productSearch">
+      <h1 class="productSearch__ttl">
+        <span class="productSearch__ttlInner">検索結果<span class="productSearch__word">9784000000000</span></span>
+      </h1>
+      <div class="productSearch__inner">
+        <div class="productSearch__control">
+          <div class="productSearch__refinement">
+            <div class="productSearch__item productSearch__item--refinement forSp">
+              <a class="productInformation__list__link js-modal ac-click-cv" data-cv-name="filterOpen_Search" data-modal="modalSearchRefinement" data-mode="full">
+                <span class="icon-refinement icon-refinement-dims"></span>
+                <span>条件を追加</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="productSearch__null">
+        <p class="productSearch__null__lead">
+          ご指定いただいた検索条件に該当する商品が見つかりませんでした
+        </p>
+        <section class="productSearch__enclosure">
+          <h2 class="productSearch__enclosure__ttl">
+            <span class="icon-help-gray icon-help-gray-dims"></span>
+            <span>お探しの商品が見つかりませんか？</span>
+          </h2>
+          <h3 class="productSearch__enclosure__heading">
+            ｢在庫ありのみ｣をチェックして検索の場合
+          </h3>
+          <p class="productSearch__enclosure__txt">
+            検索ヒットした商品がすべて品切れの場合はこのページが表示されます｡在庫の有無に関わらず商品を表示する場合､｢在庫ありのみ｣のチェックマークを外して検索をしてください｡在庫がない商品は､入荷お知らせメールへの登録がおすすめです
+          </p>
+          <h3 class="productSearch__enclosure__heading">
+            キーワードに誤字がある場合
+          </h3>
+          <p class="productSearch__enclosure__txt">
+            漢字の変換ミスなどがあると表示されないことがあります｡できるだけ正確に入力しなおしてみてください
+          </p>
+          <h3 class="productSearch__enclosure__heading">
+            それでも見つからない場合
+          </h3>
+          <p class="productSearch__enclosure__txt">
+            <a href="https://regist11.smp.ne.jp/regist/is?SMPFORM=ofn-latbq-651b190782b21aa1eaa0162e484e578c" class="productSearch__enclosure__link">
+              ご意見フォーム
+            </a>
+            からご指摘いただけますようお願いいたします
+          </p>
+        </section>
+        <div class="linkButton">
+          <div class="linkButton__inner">
+            <span class="btn linkButton__item js-returnToPreviousPage">ひとつ前のページに戻る</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /productSearch -->
+  </div>
+  <!--mainContent__col-->
+  <div class="mainContent__col forPc">
+    <section class="refinement js-refinement">
+        <h4 class="refinement__head">
+          <span class="refinement__ttl">絞り込み</span>
+        </h4>
+        <ul class="refinement__list">
+          <li class="refinement__item">
+            <label class="checkbox">
+                <input id='exist_used_check' type="checkbox" class="js-cartSetItemCheckbox" value="" disabled="disabled"/>
+              <span class="checkbox__item"><span class="checkbox__txt">中古のみ</span></span>
+            </label>
+          </li>
+          <li class="refinement__item">
+            <label class="checkbox">
+                <input id='exist_stock_check' type="checkbox" class="js-cartSetItemCheckbox" value="" disabled="disabled"/>
+              <span class="checkbox__item"><span class="checkbox__txt">在庫ありのみ</span></span>
+            </label>
+          </li>
+          <li class="refinement__item">
+            <label class="checkbox">
+                            <input id='exist_store_trans_check' type="checkbox" class="js-cartSetItemCheckbox" value="" disabled="disabled"/>
+                            <span class="checkbox__item"><span class="checkbox__txt">店舗受取可</span></span>
+            </label>
+          </li>
+        </ul>
+        <section>
+          <h5 class="refinement__heading">カテゴリ</h5>
+          <ul class="refinement__list">
+            <li class="refinement__item">
+              <a href="/search" class="refinement__link">                <span class="refinement__linkTxt">すべてのカテゴリ</span>
+                <span class="refinement__hit">(5,724,178)</span>
+              </a>
+            </li>
+              <li class="refinement__item">
+                <a href="/search/genre/12" class="refinement__link">
+                  <span class="refinement__linkTxt">書籍</span>
+                  <span class="refinement__hit">(2,871,429)</span>
+                </a>
+              </li>
+              <li class="refinement__item">
+                <a href="/search/genre/11" class="refinement__link">
+                  <span class="refinement__linkTxt">コミック</span>
+                  <span class="refinement__hit">(417,695)</span>
+                </a>
+              </li>
+              <li class="refinement__item">
+                <a href="/search/genre/13" class="refinement__link">
+                  <span class="refinement__linkTxt">雑誌</span>
+                  <span class="refinement__hit">(116,927)</span>
+                </a>
+              </li>
+              <li class="refinement__item">
+                <a href="/search/genre/31" class="refinement__link">
+                  <span class="refinement__linkTxt">CD</span>
+                  <span class="refinement__hit">(1,943,264)</span>
+                </a>
+              </li>
+              <li class="refinement__item">
+                <a href="/search/genre/71" class="refinement__link">
+                  <span class="refinement__linkTxt">DVD・ブルーレイ</span>
+                  <span class="refinement__hit">(329,691)</span>
+                </a>
+              </li>
+              <li class="refinement__item">
+                <a href="/search/genre/51" class="refinement__link">
+                  <span class="refinement__linkTxt">ゲーム</span>
+                  <span class="refinement__hit">(45,172)</span>
+                </a>
+              </li>
+            <li class="refinement__item">
+              <a href="/set/search/keyword/9784000000000" class="refinement__link categorySetLink">
+                <span class="refinement__linkTxt">セット</span>
+                <span class="modalSearchRefinement__hit"></span>
+              </a>
+            </li>
+          </ul>
+        </section>
+        <section class="refinement__form">
+          <h5 class="refinement__heading">キーワード</h5>
+          <ul class="refinement__list">
+            <li class="refinement__item">
+              <p class="refinement__keyword">
+                <span class="refinement__keywordBox">
+                  <input id='search_keyword' type="text" class="refinement__text search_form" placeholder="〜を含む" name="or" value="9784000000000" />
+                </span>
+                <span class="refinement__keywordTxt">を含む</span>
+              </p>
+            </li>
+            <li class="refinement__item">
+              <p class="refinement__keyword">
+                <span class="refinement__keywordBox">
+                  <input id='search_exclusion_keyword' type="text" class="refinement__text search_form" placeholder="〜を含まない" name="not" value="" />
+                </span>
+                <span class="refinement__keywordTxt">を除く</span>
+              </p>
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h5 class="refinement__heading">著者・作者</h5>
+          <ul class="refinement__list">
+            <li class="refinement__item">
+              <p class="refinement__keyword">
+                <input id='search_author' type="text" class="refinement__text search_form" placeholder="入力してください" name="author" value="" />
+              </p>
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h5 class="refinement__heading">販売会社/出版社（メーカー）</h5>
+          <ul class="refinement__list">
+            <li class="refinement__item">
+              <p class="refinement__keyword">
+                <input id='search_publisher' type="text" class="refinement__text search_form" placeholder="入力してください" name="maker" value="" />
+              </p>
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h5 class="refinement__heading">中古価格</h5>
+          <ul class="refinement__list">
+            <li class="refinement__item">
+              <p class="refinement__price">
+                <span class="refinement__priceBox">
+                  <input id='search_used_price_min' type="text" class="refinement__text search_form" placeholder="0" name="price1" value="" />
+                </span>
+                <span class="refinement__priceRange">〜</span>
+                <span class="refinement__priceBox">
+                  <input id='search_used_price_max' type="text" class="refinement__text search_form" placeholder="上限なし" name="price2" value="" />
+                </span>
+                <span class="refinement__priceYen">円</span>
+              </p>
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h5 class="refinement__heading">発売年月</h5>
+          <p class="refinement__note">セットは対象外となります</p>
+          <ul class="refinement__list">
+            <li class="refinement__item">
+              <p class="refinement__date">
+
+                <span class="refinement__dateYearBox">
+                  <span class="refinement__select">
+                    <select id='search_sys' name="year1" class="refinement__selectTag -empty year_select1 search_form">
+                      <option value="" selected="selected">ー</option>
+                      <option value="2026">2026</option>
+                      <option value="2025">2025</option>
+                      <option value="2024">2024</option>
+                      <option value="2023">2023</option>
+                      <option value="2022">2022</option>
+                      <option value="2021">2021</option>
+                      <option value="2020">2020</option>
+                      <option value="2019">2019</option>
+                      <option value="2018">2018</option>
+                      <option value="2017">2017</option>
+                      <option value="2016">2016</option>
+                      <option value="2015">2015</option>
+                      <option value="2014">2014</option>
+                      <option value="2013">2013</option>
+                      <option value="2012">2012</option>
+                      <option value="2011">2011</option>
+                      <option value="2010">2010</option>
+                      <option value="2009">2009</option>
+                      <option value="2008">2008</option>
+                      <option value="2007">2007</option>
+                      <option value="2006">2006</option>
+                      <option value="2005">2005</option>
+                      <option value="2004">2004</option>
+                      <option value="2003">2003</option>
+                      <option value="2002">2002</option>
+                      <option value="2001">2001</option>
+                      <option value="2000">2000</option>
+                      <option value="1999">1999</option>
+                      <option value="1998">1998</option>
+                      <option value="1997">1997</option>
+                      <option value="1996">1996</option>
+                      <option value="1995">1995</option>
+                      <option value="1994">1994</option>
+                      <option value="1993">1993</option>
+                      <option value="1992">1992</option>
+                      <option value="1991">1991</option>
+                      <option value="1990">1990</option>
+                      <option value="1989">1989</option>
+                      <option value="1988">1988</option>
+                      <option value="1987">1987</option>
+                      <option value="1986">1986</option>
+                      <option value="1985">1985</option>
+                      <option value="1984">1984</option>
+                      <option value="1983">1983</option>
+                      <option value="1982">1982</option>
+                      <option value="1981">1981</option>
+                      <option value="1980">1980</option>
+                      <option value="1979">1979</option>
+                      <option value="1978">1978</option>
+                      <option value="1977">1977</option>
+                      <option value="1976">1976</option>
+                      <option value="1975">1975</option>
+                      <option value="1974">1974</option>
+                      <option value="1973">1973</option>
+                      <option value="1972">1972</option>
+                      <option value="1971">1971</option>
+                      <option value="1970">1970</option>
+                      <option value="1969">1969</option>
+                      <option value="1968">1968</option>
+                      <option value="1967">1967</option>
+                      <option value="1966">1966</option>
+                      <option value="1965">1965</option>
+                      <option value="1964">1964</option>
+                      <option value="1963">1963</option>
+                      <option value="1962">1962</option>
+                      <option value="1961">1961</option>
+                      <option value="1960">1960</option>
+                      <option value="1959">1959</option>
+                      <option value="1958">1958</option>
+                      <option value="1957">1957</option>
+                      <option value="1956">1956</option>
+                      <option value="1955">1955</option>
+                      <option value="1954">1954</option>
+                      <option value="1953">1953</option>
+                      <option value="1952">1952</option>
+                      <option value="1951">1951</option>
+                      <option value="1950">1950</option>
+                      <option value="1949">1949</option>
+                      <option value="1948">1948</option>
+                      <option value="1947">1947</option>
+                      <option value="1946">1946</option>
+                      <option value="1945">1945</option>
+                      <option value="1944">1944</option>
+                      <option value="1943">1943</option>
+                      <option value="1942">1942</option>
+                      <option value="1941">1941</option>
+                      <option value="1940">1940</option>
+                      <option value="1939">1939</option>
+                      <option value="1938">1938</option>
+                      <option value="1937">1937</option>
+                      <option value="1936">1936</option>
+                      <option value="1935">1935</option>
+                      <option value="1934">1934</option>
+                      <option value="1933">1933</option>
+                      <option value="1932">1932</option>
+                      <option value="1931">1931</option>
+                      <option value="1930">1930</option>
+                      <option value="1929">1929</option>
+                      <option value="1928">1928</option>
+                      <option value="1927">1927</option>
+                      <option value="1926">1926</option>
+                      <option value="1925">1925</option>
+                      <option value="1924">1924</option>
+                      <option value="1923">1923</option>
+                      <option value="1922">1922</option>
+                      <option value="1921">1921</option>
+                      <option value="1920">1920</option>
+                      <option value="1919">1919</option>
+                      <option value="1918">1918</option>
+                      <option value="1917">1917</option>
+                      <option value="1916">1916</option>
+                      <option value="1915">1915</option>
+                      <option value="1914">1914</option>
+                      <option value="1913">1913</option>
+                      <option value="1912">1912</option>
+                      <option value="1911">1911</option>
+                      <option value="1910">1910</option>
+                      <option value="1909">1909</option>
+                      <option value="1908">1908</option>
+                      <option value="1907">1907</option>
+                      <option value="1906">1906</option>
+                      <option value="1905">1905</option>
+                      <option value="1904">1904</option>
+                      <option value="1903">1903</option>
+                      <option value="1902">1902</option>
+                      <option value="1901">1901</option>
+                      <option value="1900">1900</option>
+                    </select>
+                  </span>
+                </span>
+                <span class="refinement__dateYear">年</span>
+
+                <span class="refinement__dateMonthBox">
+                  <span class="refinement__select">
+                    <select id='search_sms' name="month1" class="refinement__selectTag -empty search_form">
+                      <option value="" selected="selected">ー</option>
+                      <option value="01">01</option>
+                      <option value="02">02</option>
+                      <option value="03">03</option>
+                      <option value="04">04</option>
+                      <option value="05">05</option>
+                      <option value="06">06</option>
+                      <option value="07">07</option>
+                      <option value="08">08</option>
+                      <option value="09">09</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                  </span>
+                </span>
+                <span class="refinement__dateMonth">月〜</span>
+              </p>
+            </li>
+
+            <li class="refinement__item">
+              <p class="refinement__date">
+                <span class="refinement__dateYearBox">
+                  <span class="refinement__select">
+                    <select id='search_sye' name="year2" class="refinement__selectTag -empty year_select2 search_form">
+                      <option value="" selected="selected">ー</option>
+                      <option value="2026">2026</option>
+                      <option value="2025">2025</option>
+                      <option value="2024">2024</option>
+                      <option value="2023">2023</option>
+                      <option value="2022">2022</option>
+                      <option value="2021">2021</option>
+                      <option value="2020">2020</option>
+                      <option value="2019">2019</option>
+                      <option value="2018">2018</option>
+                      <option value="2017">2017</option>
+                      <option value="2016">2016</option>
+                      <option value="2015">2015</option>
+                      <option value="2014">2014</option>
+                      <option value="2013">2013</option>
+                      <option value="2012">2012</option>
+                      <option value="2011">2011</option>
+                      <option value="2010">2010</option>
+                      <option value="2009">2009</option>
+                      <option value="2008">2008</option>
+                      <option value="2007">2007</option>
+                      <option value="2006">2006</option>
+                      <option value="2005">2005</option>
+                      <option value="2004">2004</option>
+                      <option value="2003">2003</option>
+                      <option value="2002">2002</option>
+                      <option value="2001">2001</option>
+                      <option value="2000">2000</option>
+                      <option value="1999">1999</option>
+                      <option value="1998">1998</option>
+                      <option value="1997">1997</option>
+                      <option value="1996">1996</option>
+                      <option value="1995">1995</option>
+                      <option value="1994">1994</option>
+                      <option value="1993">1993</option>
+                      <option value="1992">1992</option>
+                      <option value="1991">1991</option>
+                      <option value="1990">1990</option>
+                      <option value="1989">1989</option>
+                      <option value="1988">1988</option>
+                      <option value="1987">1987</option>
+                      <option value="1986">1986</option>
+                      <option value="1985">1985</option>
+                      <option value="1984">1984</option>
+                      <option value="1983">1983</option>
+                      <option value="1982">1982</option>
+                      <option value="1981">1981</option>
+                      <option value="1980">1980</option>
+                      <option value="1979">1979</option>
+                      <option value="1978">1978</option>
+                      <option value="1977">1977</option>
+                      <option value="1976">1976</option>
+                      <option value="1975">1975</option>
+                      <option value="1974">1974</option>
+                      <option value="1973">1973</option>
+                      <option value="1972">1972</option>
+                      <option value="1971">1971</option>
+                      <option value="1970">1970</option>
+                      <option value="1969">1969</option>
+                      <option value="1968">1968</option>
+                      <option value="1967">1967</option>
+                      <option value="1966">1966</option>
+                      <option value="1965">1965</option>
+                      <option value="1964">1964</option>
+                      <option value="1963">1963</option>
+                      <option value="1962">1962</option>
+                      <option value="1961">1961</option>
+                      <option value="1960">1960</option>
+                      <option value="1959">1959</option>
+                      <option value="1958">1958</option>
+                      <option value="1957">1957</option>
+                      <option value="1956">1956</option>
+                      <option value="1955">1955</option>
+                      <option value="1954">1954</option>
+                      <option value="1953">1953</option>
+                      <option value="1952">1952</option>
+                      <option value="1951">1951</option>
+                      <option value="1950">1950</option>
+                      <option value="1949">1949</option>
+                      <option value="1948">1948</option>
+                      <option value="1947">1947</option>
+                      <option value="1946">1946</option>
+                      <option value="1945">1945</option>
+                      <option value="1944">1944</option>
+                      <option value="1943">1943</option>
+                      <option value="1942">1942</option>
+                      <option value="1941">1941</option>
+                      <option value="1940">1940</option>
+                      <option value="1939">1939</option>
+                      <option value="1938">1938</option>
+                      <option value="1937">1937</option>
+                      <option value="1936">1936</option>
+                      <option value="1935">1935</option>
+                      <option value="1934">1934</option>
+                      <option value="1933">1933</option>
+                      <option value="1932">1932</option>
+                      <option value="1931">1931</option>
+                      <option value="1930">1930</option>
+                      <option value="1929">1929</option>
+                      <option value="1928">1928</option>
+                      <option value="1927">1927</option>
+                      <option value="1926">1926</option>
+                      <option value="1925">1925</option>
+                      <option value="1924">1924</option>
+                      <option value="1923">1923</option>
+                      <option value="1922">1922</option>
+                      <option value="1921">1921</option>
+                      <option value="1920">1920</option>
+                      <option value="1919">1919</option>
+                      <option value="1918">1918</option>
+                      <option value="1917">1917</option>
+                      <option value="1916">1916</option>
+                      <option value="1915">1915</option>
+                      <option value="1914">1914</option>
+                      <option value="1913">1913</option>
+                      <option value="1912">1912</option>
+                      <option value="1911">1911</option>
+                      <option value="1910">1910</option>
+                      <option value="1909">1909</option>
+                      <option value="1908">1908</option>
+                      <option value="1907">1907</option>
+                      <option value="1906">1906</option>
+                      <option value="1905">1905</option>
+                      <option value="1904">1904</option>
+                      <option value="1903">1903</option>
+                      <option value="1902">1902</option>
+                      <option value="1901">1901</option>
+                      <option value="1900">1900</option>
+                    </select>
+                  </span>
+                </span>
+                <span class="refinement__dateYear">年</span>
+
+                <span class="refinement__dateMonthBox">
+                  <span class="refinement__select">
+                    <select id='search_sme' name="month2" class="refinement__selectTag -empty search_form">
+                      <option value="" selected="selected">ー</option>
+                      <option value="01">01</option>
+                      <option value="02">02</option>
+                      <option value="03">03</option>
+                      <option value="04">04</option>
+                      <option value="05">05</option>
+                      <option value="06">06</option>
+                      <option value="07">07</option>
+                      <option value="08">08</option>
+                      <option value="09">09</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                  </span>
+                </span>
+                <span class="refinement__dateMonth">月まで</span>
+              </p>
+            </li>
+          </ul>
+        </section>
+        <a href="" id="search_btn" class="btn btn--blue ac-click-cv" data-cv-name="sortOn_Search">検索する</a>
+        <a href="" id='search_reset_btn' class="link link--center js-refinementReset">条件をリセット</a>
+    </section>
+    <!-- /.refinement -->
+  </div>
+  <!--mainContent__col forPc-->
+</div>
+<!-- /mainContent__search -->
+<input type="hidden" class="js-modal" data-modal="modalCartAddStock0">
+
+<div id="modal" class="modal">
+    <div class="modal__overlay"></div>
+    <div id="modalSearchRefinement" class="modal__inner js-modalInner forSp" tabindex="0">
+      <div class="modalContent">
+        <!-- /modalRefinementWrap -->
+        <div class="modalRefinementWrap js-modalRefinementWrap" data-level="0" data-id="0">
+          <p class="modal__title">しぼりこみ</p>
+          <div class="modalSearchRefinement js-modalInnerContent js-modalRefinementInnerContent" style="height: 744px;">
+            <div class="modalSearchRefinement__inner">
+              <div class="modalSearchRefinement__content">
+                <ul class="modalSearchRefinement__list modalSearchRefinement__list--checkbox">
+                  <li class="modalSearchRefinement__item">
+                    <label class="checkbox">
+                        <input id='exist_used_check_modal' type="checkbox" class="js-cartSetItemCheckbox" value="" disabled="disabled"/>
+                      <span class="checkbox__item"><span class="checkbox__txt">中古のみ</span></span>
+                    </label>
+                  </li>
+                  <li class="modalSearchRefinement__item">
+                    <label class="checkbox">
+                        <input id='exist_stock_check_modal' type="checkbox" class="js-cartSetItemCheckbox" value="" disabled="disabled"/>
+                    <span class="checkbox__item"><span class="checkbox__txt">在庫ありのみ</span></span>
+                    </label>
+                  </li>
+                  <li class="modalSearchRefinement__item">
+                    <label class="checkbox">
+                          <input id='exist_store_trans_check_modal' type="checkbox" class="js-cartSetItemCheckbox" value="" disabled="disabled"/>
+                      <span class="checkbox__item"><span class="checkbox__txt">店舗受取可</span></span>
+                    </label>
+                  </li>
+                </ul>
+                <p class="modalSearchRefinement__heading">カテゴリ</p>
+                <ul class="modalSearchRefinement__list">
+                  <li class="modalSearchRefinement__item">
+                    <a href="" class="modalSearchRefinement__category js-modalRefinementSp" data-level="1" data-id="0" data-direction="bottom">
+                        すべてのカテゴリ
+                    </a>
+                  </li>
+                </ul>
+                <div class="modalSearchRefinement__searchBox">
+                  <label class="modalSearchRefinement__heading" for="search_keyword_modal">キーワード</label>
+                  <ul class="modalSearchRefinement__list">
+                    <li class="modalSearchRefinement__item">
+                      <p class="modalSearchRefinement__keyword">
+                        <span class="modalSearchRefinement__keywordBox">
+                          <input id='search_keyword_modal' type="text" class="modalSearchRefinement__text search_form" placeholder="〜を含む" name="or"
+                          value="9784000000000">
+                        </span>
+                        <span class="modalSearchRefinement__keywordTxt">を含む</span>
+                      </p>
+                    </li>
+                    <li class="modalSearchRefinement__item">
+                      <p class="modalSearchRefinement__keyword">
+                        <span class="modalSearchRefinement__keywordBox">
+                          <input id='search_exclusion_keyword_modal' type="text" class="modalSearchRefinement__text search_form" placeholder="〜を含まない" name="not" value="">
+                        </span>
+                        <span class="modalSearchRefinement__keywordTxt">を除く</span>
+                      </p>
+                    </li>
+                  </ul>
+                </div>
+                <div class="modalSearchRefinement__searchBox">
+                  <label class="modalSearchRefinement__heading" for="search_author_modal">著者・作者</label>
+                  <ul class="modalSearchRefinement__list">
+                    <li class="modalSearchRefinement__item">
+                      <p class="modalSearchRefinement__keyword">
+                        <input id='search_author_modal' type="text" class="modalSearchRefinement__text search_form" placeholder="入力してください" name="author" value="">
+                      </p>
+                    </li>
+                  </ul>
+                </div>
+                <div class="modalSearchRefinement__searchBox">
+                  <label class="modalSearchRefinement__heading" for="search_publisher_modal">販売会社/出版社（メーカー）</label>
+                  <ul class="modalSearchRefinement__list">
+                    <li class="modalSearchRefinement__item">
+                      <p class="modalSearchRefinement__keyword">
+                        <input id='search_publisher_modal' type="text" class="modalSearchRefinement__text search_form" placeholder="入力してください" name="maker" value="">
+                      </p>
+                    </li>
+                  </ul>
+                </div>
+                <div class="modalSearchRefinement__searchBox">
+                  <label class="modalSearchRefinement__heading" for="search_used_price_min_modal">中古価格</label>
+                  <ul class="modalSearchRefinement__list">
+                    <li class="modalSearchRefinement__item">
+                      <p class="modalSearchRefinement__price">
+                        <span class="modalSearchRefinement__priceBox">
+                          <input id='search_used_price_min_modal' type="text" class="modalSearchRefinement__text search_form" placeholder="0" name="price1" value="">
+                        </span>
+                        <span class="modalSearchRefinement__priceRange">〜</span>
+                        <span class="modalSearchRefinement__priceBox">
+                          <input id='search_used_price_max_modal' type="text" class="modalSearchRefinement__text search_form" placeholder="上限なし" name="price2" value="">
+                        </span>
+                        <span class="modalSearchRefinement__priceYen">円</span>
+                      </p>
+                    </li>
+                  </ul>
+                </div>
+                <div class="modalSearchRefinement__searchBox">
+                  <label class="modalSearchRefinement__heading" for="search_sys_modal">発売</label>
+                  <ul class="modalSearchRefinement__list">
+
+                      <li class="modalSearchRefinement__item">
+                      <p class="modalSearchRefinement__date">
+
+                        <span class="modalSearchRefinement__dateYearBox">
+                          <span class="modalSearchRefinement__select">
+                            <select id='search_sys_modal' name="year1" class="modalSearchRefinement__selectTag -empty year_select1 search_form">
+                              <option value="" selected="selected">ー</option>
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                                <option value="2018">2018</option>
+                                <option value="2017">2017</option>
+                                <option value="2016">2016</option>
+                                <option value="2015">2015</option>
+                                <option value="2014">2014</option>
+                                <option value="2013">2013</option>
+                                <option value="2012">2012</option>
+                                <option value="2011">2011</option>
+                                <option value="2010">2010</option>
+                                <option value="2009">2009</option>
+                                <option value="2008">2008</option>
+                                <option value="2007">2007</option>
+                                <option value="2006">2006</option>
+                                <option value="2005">2005</option>
+                                <option value="2004">2004</option>
+                                <option value="2003">2003</option>
+                                <option value="2002">2002</option>
+                                <option value="2001">2001</option>
+                                <option value="2000">2000</option>
+                                <option value="1999">1999</option>
+                                <option value="1998">1998</option>
+                                <option value="1997">1997</option>
+                                <option value="1996">1996</option>
+                                <option value="1995">1995</option>
+                                <option value="1994">1994</option>
+                                <option value="1993">1993</option>
+                                <option value="1992">1992</option>
+                                <option value="1991">1991</option>
+                                <option value="1990">1990</option>
+                                <option value="1989">1989</option>
+                                <option value="1988">1988</option>
+                                <option value="1987">1987</option>
+                                <option value="1986">1986</option>
+                                <option value="1985">1985</option>
+                                <option value="1984">1984</option>
+                                <option value="1983">1983</option>
+                                <option value="1982">1982</option>
+                                <option value="1981">1981</option>
+                                <option value="1980">1980</option>
+                                <option value="1979">1979</option>
+                                <option value="1978">1978</option>
+                                <option value="1977">1977</option>
+                                <option value="1976">1976</option>
+                                <option value="1975">1975</option>
+                                <option value="1974">1974</option>
+                                <option value="1973">1973</option>
+                                <option value="1972">1972</option>
+                                <option value="1971">1971</option>
+                                <option value="1970">1970</option>
+                                <option value="1969">1969</option>
+                                <option value="1968">1968</option>
+                                <option value="1967">1967</option>
+                                <option value="1966">1966</option>
+                                <option value="1965">1965</option>
+                                <option value="1964">1964</option>
+                                <option value="1963">1963</option>
+                                <option value="1962">1962</option>
+                                <option value="1961">1961</option>
+                                <option value="1960">1960</option>
+                                <option value="1959">1959</option>
+                                <option value="1958">1958</option>
+                                <option value="1957">1957</option>
+                                <option value="1956">1956</option>
+                                <option value="1955">1955</option>
+                                <option value="1954">1954</option>
+                                <option value="1953">1953</option>
+                                <option value="1952">1952</option>
+                                <option value="1951">1951</option>
+                                <option value="1950">1950</option>
+                                <option value="1949">1949</option>
+                                <option value="1948">1948</option>
+                                <option value="1947">1947</option>
+                                <option value="1946">1946</option>
+                                <option value="1945">1945</option>
+                                <option value="1944">1944</option>
+                                <option value="1943">1943</option>
+                                <option value="1942">1942</option>
+                                <option value="1941">1941</option>
+                                <option value="1940">1940</option>
+                                <option value="1939">1939</option>
+                                <option value="1938">1938</option>
+                                <option value="1937">1937</option>
+                                <option value="1936">1936</option>
+                                <option value="1935">1935</option>
+                                <option value="1934">1934</option>
+                                <option value="1933">1933</option>
+                                <option value="1932">1932</option>
+                                <option value="1931">1931</option>
+                                <option value="1930">1930</option>
+                                <option value="1929">1929</option>
+                                <option value="1928">1928</option>
+                                <option value="1927">1927</option>
+                                <option value="1926">1926</option>
+                                <option value="1925">1925</option>
+                                <option value="1924">1924</option>
+                                <option value="1923">1923</option>
+                                <option value="1922">1922</option>
+                                <option value="1921">1921</option>
+                                <option value="1920">1920</option>
+                                <option value="1919">1919</option>
+                                <option value="1918">1918</option>
+                                <option value="1917">1917</option>
+                                <option value="1916">1916</option>
+                                <option value="1915">1915</option>
+                                <option value="1914">1914</option>
+                                <option value="1913">1913</option>
+                                <option value="1912">1912</option>
+                                <option value="1911">1911</option>
+                                <option value="1910">1910</option>
+                                <option value="1909">1909</option>
+                                <option value="1908">1908</option>
+                                <option value="1907">1907</option>
+                                <option value="1906">1906</option>
+                                <option value="1905">1905</option>
+                                <option value="1904">1904</option>
+                                <option value="1903">1903</option>
+                                <option value="1902">1902</option>
+                                <option value="1901">1901</option>
+                                <option value="1900">1900</option>
+                              </select>
+                          </span>
+                        </span>
+                        <span class="modalSearchRefinement__dateYear">年</span>
+
+                        <span class="modalSearchRefinement__dateMonthBox">
+                          <span class="modalSearchRefinement__select">
+                            <select id='search_sms_modal' name="month1" class="modalSearchRefinement__selectTag -empty search_form">
+                              <option value="" selected="selected">ー</option>
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="03">03</option>
+                                <option value="04">04</option>
+                                <option value="05">05</option>
+                                <option value="06">06</option>
+                                <option value="07">07</option>
+                                <option value="08">08</option>
+                                <option value="09">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                              </select>
+                          </span>
+                        </span>
+                        <span class="modalSearchRefinement__dateMonth">月〜</span>
+                      </p>
+                    </li>
+
+                    <li class="modalSearchRefinement__item">
+                      <p class="modalSearchRefinement__date">
+
+                        <span class="modalSearchRefinement__dateYearBox">
+                          <span class="modalSearchRefinement__select">
+                            <select id='search_sye_modal' name="year2" class="modalSearchRefinement__selectTag -empty year_select2 search_form">
+                              <option value="" selected="selected">ー</option>
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                                <option value="2018">2018</option>
+                                <option value="2017">2017</option>
+                                <option value="2016">2016</option>
+                                <option value="2015">2015</option>
+                                <option value="2014">2014</option>
+                                <option value="2013">2013</option>
+                                <option value="2012">2012</option>
+                                <option value="2011">2011</option>
+                                <option value="2010">2010</option>
+                                <option value="2009">2009</option>
+                                <option value="2008">2008</option>
+                                <option value="2007">2007</option>
+                                <option value="2006">2006</option>
+                                <option value="2005">2005</option>
+                                <option value="2004">2004</option>
+                                <option value="2003">2003</option>
+                                <option value="2002">2002</option>
+                                <option value="2001">2001</option>
+                                <option value="2000">2000</option>
+                                <option value="1999">1999</option>
+                                <option value="1998">1998</option>
+                                <option value="1997">1997</option>
+                                <option value="1996">1996</option>
+                                <option value="1995">1995</option>
+                                <option value="1994">1994</option>
+                                <option value="1993">1993</option>
+                                <option value="1992">1992</option>
+                                <option value="1991">1991</option>
+                                <option value="1990">1990</option>
+                                <option value="1989">1989</option>
+                                <option value="1988">1988</option>
+                                <option value="1987">1987</option>
+                                <option value="1986">1986</option>
+                                <option value="1985">1985</option>
+                                <option value="1984">1984</option>
+                                <option value="1983">1983</option>
+                                <option value="1982">1982</option>
+                                <option value="1981">1981</option>
+                                <option value="1980">1980</option>
+                                <option value="1979">1979</option>
+                                <option value="1978">1978</option>
+                                <option value="1977">1977</option>
+                                <option value="1976">1976</option>
+                                <option value="1975">1975</option>
+                                <option value="1974">1974</option>
+                                <option value="1973">1973</option>
+                                <option value="1972">1972</option>
+                                <option value="1971">1971</option>
+                                <option value="1970">1970</option>
+                                <option value="1969">1969</option>
+                                <option value="1968">1968</option>
+                                <option value="1967">1967</option>
+                                <option value="1966">1966</option>
+                                <option value="1965">1965</option>
+                                <option value="1964">1964</option>
+                                <option value="1963">1963</option>
+                                <option value="1962">1962</option>
+                                <option value="1961">1961</option>
+                                <option value="1960">1960</option>
+                                <option value="1959">1959</option>
+                                <option value="1958">1958</option>
+                                <option value="1957">1957</option>
+                                <option value="1956">1956</option>
+                                <option value="1955">1955</option>
+                                <option value="1954">1954</option>
+                                <option value="1953">1953</option>
+                                <option value="1952">1952</option>
+                                <option value="1951">1951</option>
+                                <option value="1950">1950</option>
+                                <option value="1949">1949</option>
+                                <option value="1948">1948</option>
+                                <option value="1947">1947</option>
+                                <option value="1946">1946</option>
+                                <option value="1945">1945</option>
+                                <option value="1944">1944</option>
+                                <option value="1943">1943</option>
+                                <option value="1942">1942</option>
+                                <option value="1941">1941</option>
+                                <option value="1940">1940</option>
+                                <option value="1939">1939</option>
+                                <option value="1938">1938</option>
+                                <option value="1937">1937</option>
+                                <option value="1936">1936</option>
+                                <option value="1935">1935</option>
+                                <option value="1934">1934</option>
+                                <option value="1933">1933</option>
+                                <option value="1932">1932</option>
+                                <option value="1931">1931</option>
+                                <option value="1930">1930</option>
+                                <option value="1929">1929</option>
+                                <option value="1928">1928</option>
+                                <option value="1927">1927</option>
+                                <option value="1926">1926</option>
+                                <option value="1925">1925</option>
+                                <option value="1924">1924</option>
+                                <option value="1923">1923</option>
+                                <option value="1922">1922</option>
+                                <option value="1921">1921</option>
+                                <option value="1920">1920</option>
+                                <option value="1919">1919</option>
+                                <option value="1918">1918</option>
+                                <option value="1917">1917</option>
+                                <option value="1916">1916</option>
+                                <option value="1915">1915</option>
+                                <option value="1914">1914</option>
+                                <option value="1913">1913</option>
+                                <option value="1912">1912</option>
+                                <option value="1911">1911</option>
+                                <option value="1910">1910</option>
+                                <option value="1909">1909</option>
+                                <option value="1908">1908</option>
+                                <option value="1907">1907</option>
+                                <option value="1906">1906</option>
+                                <option value="1905">1905</option>
+                                <option value="1904">1904</option>
+                                <option value="1903">1903</option>
+                                <option value="1902">1902</option>
+                                <option value="1901">1901</option>
+                                <option value="1900">1900</option>
+                              </select>
+                          </span>
+                        </span>
+                        <span class="modalSearchRefinement__dateYear">年</span>
+
+                        <span class="modalSearchRefinement__dateMonthBox">
+                          <span class="modalSearchRefinement__select">
+                            <select id='search_sme_modal' name="month2" class="modalSearchRefinement__selectTag -empty search_form">
+                              <option value="" selected="selected">ー</option>
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="03">03</option>
+                                <option value="04">04</option>
+                                <option value="05">05</option>
+                                <option value="06">06</option>
+                                <option value="07">07</option>
+                                <option value="08">08</option>
+                                <option value="09">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                              </select>
+                          </span>
+                        </span>
+                        <span class="modalSearchRefinement__dateMonth">月まで</span>
+                      </p>
+                    </li>
+                  </ul>
+                </div>
+                <p class="modalSearchRefinement__note">セットは対象外となります</p>
+                <a id='search_btn_modal' class="btn btn--blue ac-click-cv" data-cv-name="sortOn_Search">検索する</a>
+                <a id='search_reset_btn_modal' class="link link--center js-modalRefinementReset">条件をリセット</a>
+              </div><!-- /.modalSearchRefinement__content -->
+            </div>
+          </div>
+        </div>
+        <!-- /modalRefinementWrap -->
+
+        <div class="modalRefinementWrap js-modalRefinementWrap -hide" data-level="1" data-id="0">
+          <p class="modal__title">
+            <span>カテゴリ</span>
+          </p>
+          <div class="modalSearchRefinement js-modalRefinementInnerContent">
+            <div class="modalSearchRefinement__inner">
+              <div class="modalSearchRefinement__content">
+                <ul class="modalSearchRefinement__categoryList">
+                  <li class="modalSearchRefinement__categoryItem">
+                    <a href="/search" class="modalSearchRefinement__categoryLink">                      <span>すべてのカテゴリ</span>
+                      <span class="modalSearchRefinement__hit">(5,724,178)</span>
+                    </a>
+                  </li>
+                    <li class="modalSearchRefinement__categoryItem">
+                      <a href="/search/genre/12" class="modalSearchRefinement__categoryLink">
+                        <span>書籍</span>
+                        <span class="refinement__hit">(2,871,429)</span>
+                      </a>
+                    </li>
+                    <li class="modalSearchRefinement__categoryItem">
+                      <a href="/search/genre/11" class="modalSearchRefinement__categoryLink">
+                        <span>コミック</span>
+                        <span class="refinement__hit">(417,695)</span>
+                      </a>
+                    </li>
+                    <li class="modalSearchRefinement__categoryItem">
+                      <a href="/search/genre/13" class="modalSearchRefinement__categoryLink">
+                        <span>雑誌</span>
+                        <span class="refinement__hit">(116,927)</span>
+                      </a>
+                    </li>
+                    <li class="modalSearchRefinement__categoryItem">
+                      <a href="/search/genre/31" class="modalSearchRefinement__categoryLink">
+                        <span>CD</span>
+                        <span class="refinement__hit">(1,943,264)</span>
+                      </a>
+                    </li>
+                    <li class="modalSearchRefinement__categoryItem">
+                      <a href="/search/genre/71" class="modalSearchRefinement__categoryLink">
+                        <span>DVD・ブルーレイ</span>
+                        <span class="refinement__hit">(329,691)</span>
+                      </a>
+                    </li>
+                    <li class="modalSearchRefinement__categoryItem">
+                      <a href="/search/genre/51" class="modalSearchRefinement__categoryLink">
+                        <span>ゲーム</span>
+                        <span class="refinement__hit">(45,172)</span>
+                      </a>
+                    </li>
+                    <li class="modalSearchRefinement__categoryItem">
+                      <a href="/set/search/keyword/9784000000000" class="modalSearchRefinement__categoryLink categorySetLink">
+                        <span>セット</span>
+                      </a>
+                    </li>
+                </ul>
+              </div><!-- /.modalSearchRefinement__content -->
+            </div>
+          </div>
+          <div class="modal__closeRefineSp js-modalRefinementSp" data-level="0" data-id="0" data-direction="top">
+            <img src="/library/common/svg/close.svg" alt="close" title="close">
+          </div>
+        </div>
+        <!-- /modalRefinementWrap -->
+
+        <div class="modal__close js-modalClose" tabindex="0">
+          <img src="/library/common/svg/close.svg" alt="close" title="close">
+        </div>
+      </div>
+      <!-- /modalContent -->
+      <div class="modal__closeSp js-modalCloseSp">
+        <span></span>
+      </div>
+    </div>
+    <!-- /modal__inner -->
+
+  <div id="modalCartAddStock0" class="modal__inner js-modalInner" tabindex="0">
+    <div class="modalContent">
+      <div class="modalContent__inner">
+        <div class="modal__headingBlock">
+          <p class="modal__title">カートに追加できませんでした</p>
+        </div>
+        <div class="modalItems">
+          <p class="modalItems__note">
+            <span class="icon-info icon-info-dims"></span>
+            <span class="js-cart-alert"></span>
+          </p>
+        </div>
+      </div>
+      <ul class="modal__confirm modal__confirm--box-shadow-none">
+        <li class="modal__confirmBtn">
+          <a href="" class="modal__no js-modalClose" tabindex="0">キャンセル</a>
+        </li>
+        <li class="modal__confirmBtn">
+          <a href="" class="modal__yes js-refreshPage">OK</a>
+        </li>
+      </ul>
+      <div class="modal__close js-modalClose" tabindex="0">
+        <img src="/library/common/svg/close.svg" alt="close">
+      </div>
+    </div>
+    <div class="modal__closeSp js-modalCloseSp">
+      <span></span>
+    </div>
+  </div>
+
+  <div id="modalAgeVerification" class="modal__inner js-modalInner" tabindex="0">
+    <div class="modalContent">
+      <div class="pageTitle">年齢確認</div>
+      <div class="ageVerificationBlock js-modalInnerContent">
+        <div class="ageVerificationBlock__inner">
+          <div class="ageVerificationBlock__txt--error ageVerificationBlock__txt--bold modalConfirm__error" style="display:none;">エラーにより年齢認証が完了出来ませんでした。</div>
+          <div class="ageVerificationBlock__txt">これより先は18歳未満の方には不適切な表現内容が含まれる商品を取り扱う画面です</div>
+          <div class="ageVerificationBlock__txt">18歳未満の方のアクセスは、固くお断りいたします</div>
+          <div class="ageVerificationBlock__txt--check ageVerificationBlock__txt--bold">あなたは18歳以上ですか？</div>
+          <div class="ageVerification__btns">
+            <div id="ageVerification__btns--agree" class="btn js-agree-submit" data-agelimit="1">はい</div>
+            <div class="btn js-cancel-submit js-modalClose">いいえ</div>
+          </div>
+        </div><!-- /ageVerificationBlock__inner -->
+      </div><!-- /ageVerificationBlock -->
+      <div class="modal__close js-modalClose" tabindex="1"><img src="https://content.bookoff.co.jp/common/images/close.svg" width="24" height="24" alt="close"></div>
+    </div><!--modalContent-->
+    <div class="modal__closeSp js-modalCloseSp"><span></span></div>
+  </div><!-- modalAgeVerification -->
+</div>
+<!-- /modal -->
+
+<script>
+var arrQuery = [];
+var paramName = '';
+var paramValue = '';
+var genreCode = '';
+
+  // 絞り込み（「中古のみ」「在庫ありのみ」）
+$('#exist_stock_check, #exist_used_check, #exist_store_trans_check').on('change', function () {
+	$('.js-cartSetItemCheckbox').prop('disabled', true);
+	let url = '/search/keyword/9784000000000';
+	let destUrl = '';
+	let pattern = '';
+	let replacement = '';
+
+	if($('#exist_used_check').prop('checked')) {
+		if($('#exist_stock_check').prop('checked')) {
+			replacement = '/stock/u';
+		} else {
+			replacement = '/stock/used';
+		}
+	} else {
+		if($('#exist_stock_check').prop('checked')) {
+			replacement = '/stock/z';
+		} else {
+			replacement = '';
+		}
+	}
+	if($('#exist_store_trans_check').prop('checked')) {
+		replacement += '/store-receive/y';
+	}
+	if('a' == 'a' && 'all' == 'all') {
+		pattern = '/search';
+		replacement = '/search' + replacement;
+		destUrl = url.replace(pattern, replacement);
+	} else if('a' != 'a' && 'all' == 'all') {
+		pattern = '/stock/a';
+		destUrl = url.replace(pattern, replacement);
+	} else if('a' == 'a' && 'all' != 'all') {
+		pattern = '/store-receive/all';
+		destUrl = url.replace(pattern, replacement);
+	} else {
+		pattern = '/stock/a/store-receive/all';
+		destUrl = url.replace(pattern, replacement);
+	}
+	window.location.href = destUrl;
+});
+
+let isSubmitting = false;
+// 検索
+$('#search_btn').on('click', function(e) {
+	if (isSubmitting) {
+		e.preventDefault();
+	} else {
+		isSubmitting = true;
+		e.preventDefault();
+		let url = '/search';
+		if($('#exist_used_check').prop('checked')) {
+			if($('#exist_stock_check').prop('checked')) {
+				url += '/stock/u';
+			} else {
+				url += '/stock/used';
+			}
+		} else {
+			if($('#exist_stock_check').prop('checked')) {
+				url += '/stock/z';
+			}
+		}
+		if($('#exist_store_trans_check').prop('checked')) {
+			url += '/store-receive/y';
+		}
+		if (genreCode) {
+			url += '/genre/' + genreCode;
+		}
+		if ($('#search_keyword').val()) {
+			let keyword = $('#search_keyword').val();
+			keyword = encodeMark(keyword);
+			url += '/keyword/' + keyword;
+		}
+		if ($('#search_exclusion_keyword').val()) {
+			let exclusion_keyword = $('#search_exclusion_keyword').val();
+			exclusion_keyword = encodeMark(exclusion_keyword);
+			url += '/not/' + exclusion_keyword;
+		}
+		if ($('#search_author').val()) {
+			let author = $('#search_author').val();
+			author = encodeMark(author);
+			url += '/author/' + author;
+		}
+		if ($('#search_publisher').val()) {
+			let publisher = $('#search_publisher').val();
+			publisher = encodeMark(publisher);
+			url += '/publisher/' + publisher;
+		}
+		if ($('#search_hashtag').text()) {
+			let hashtag = $('#search_hashtag').text();
+			hashtag = encodeMark(hashtag);
+			url += '/hashtag/' + hashtag;
+		}
+
+		// query_string 生成
+		arrQuery.splice(0);
+		if ($('#search_used_price_min').val() || $('#search_used_price_max').val()) {
+			paramName = 'price';
+			paramValue = $('#search_used_price_min').val() + '-' + $('#search_used_price_max').val();
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+
+		// 発売年月 未入力補完
+		var searchYearStart = $('#search_sys').val();
+		var searchMonthStart = $('#search_sms').val();
+		var searchYearEnd = $('#search_sye').val();
+		var searchMonthEnd = $('#search_sme').val();
+		var searchStart = null;
+		var searchEnd = null;
+		if (searchYearStart && searchMonthStart) {
+			// 開始年：入力　開始月：入力　の場合は、searchStartをセット
+			searchStart = searchYearStart + searchMonthStart;
+		} else if (!searchYearStart && !searchMonthStart) {
+			// 開始年：未入力　開始月：未入力　の場合は、searchStart = null をセット
+			searchStart = null;
+		} else if (searchYearStart && !searchMonthStart) {
+			// 開始年：入力　開始月：未入力　の場合は、searchMonthStart = '01' をセット
+			searchStart = searchYearStart + '01';
+		} else {
+			// 開始年：未入力　開始月：入力　の場合は、searchYearEnd により分岐
+			if(searchYearEnd) {
+				// searchYearEnd：入力　の場合は、searchYearStart = searchYearEnd
+				searchStart = searchYearEnd + searchMonthStart;
+			} else {
+				// searchYearEnd：未入力　の場合は、searchYearStart = now
+				searchYearStart = new Date().getFullYear().toString();
+				searchStart = searchYearStart + searchMonthStart;
+			}
+		}
+		if (searchYearEnd && searchMonthEnd) {
+			// 終了年：入力　終了月：入力　の場合は、searchEndをセット
+			searchEnd = searchYearEnd + searchMonthEnd;
+		} else if (!searchYearEnd && !searchMonthEnd) {
+			// 終了年：未入力　終了月：未入力　の場合は、searchEnd = null をセット
+			searchEnd = null;
+		} else if (searchYearEnd && !searchMonthEnd) {
+			// 終了年：入力　終了月：未入力　の場合は、searchMonthEnd = '12' をセット
+			searchEnd = searchYearEnd + '12';
+		} else {
+			// 終了年：未入力　終了月：入力　の場合は、searchYearStart により分岐
+			if(searchYearStart) {
+				// searchYearEnd：入力　の場合は、searchYearEnd = searchYearEnd
+				searchEnd = searchYearStart + searchMonthEnd;
+			} else {
+				// searchYearStart：未入力　の場合は、searchYearEnd = now
+				searchYearEnd = new Date().getFullYear().toString();
+				searchEnd = searchYearEnd + searchMonthEnd;
+			}
+		}
+		if (searchStart) {
+			paramName = 'date-min';
+			paramValue = searchStart;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+		if (searchEnd) {
+			paramName = 'date-max';
+			paramValue = searchEnd;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+
+		var sortKey = sessionStorage.getItem('listoption_sortkey');
+		if (sortKey !== null && sortKey !== '00') {
+			paramName = 'sort';
+			paramValue = sortKey;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+
+		var pageCount = sessionStorage.getItem('listoption_pagecount');
+		if (pageCount !== null && pageCount !== '30') {
+			paramName = 'per-page';
+			paramValue = pageCount;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+		if(url.endsWith(".0")) {
+			url += '/';
+		}
+		// query_string生成
+		url += makeQueryString(arrQuery);
+		window.location.href = url;
+	}
+});
+
+// 検索（モーダル）
+$('#search_btn_modal').on('click', function(e) {
+	if (isSubmitting) {
+		e.preventDefault();
+	} else {
+		isSubmitting = true;
+		e.preventDefault();
+		let url = '/search';
+		if($('#exist_used_check_modal').prop('checked')) {
+			if($('#exist_stock_check_modal').prop('checked')) {
+				url += '/stock/u';
+			} else {
+				url += '/stock/used';
+			}
+		} else {
+			if($('#exist_stock_check_modal').prop('checked')) {
+				url += '/stock/z';
+			}
+		}
+		if($('#exist_store_trans_check_modal').prop('checked')) {
+			url += '/store-receive/y';
+		}
+		if (genreCode) {
+			url += '/genre/' + genreCode;
+		}
+		if ($('#search_keyword_modal').val()) {
+			let keyword = $('#search_keyword_modal').val();
+			keyword = encodeMark(keyword);
+			url += '/keyword/' + keyword;
+		}
+		if ($('#search_exclusion_keyword_modal').val()) {
+			let exclusion_keyword = $('#search_exclusion_keyword_modal').val();
+			exclusion_keyword = encodeMark(exclusion_keyword);
+			url += '/not/' + exclusion_keyword;
+		}
+		if ($('#search_author_modal').val()) {
+			let author = $('#search_author_modal').val();
+			author = encodeMark(author);
+			url += '/author/' + author;
+		}
+		if ($('#search_publisher_modal').val()) {
+			let publisher = $('#search_publisher_modal').val();
+			publisher = encodeMark(publisher);
+			url += '/publisher/' + publisher;
+		}
+		if ($('#search_hashtag_modal').text()) {
+			let hashtag = $('#search_hashtag_modal').text();
+			hashtag = encodeMark(hashtag);
+			url += '/hashtag/' + hashtag;
+		}
+
+		// query_string 生成
+		arrQuery.splice(0);
+		if ($('#search_used_price_min_modal').val() || $('#search_used_price_max_modal').val()) {
+			paramName = 'price';
+			paramValue = $('#search_used_price_min_modal').val() + '-' + $('#search_used_price_max_modal').val();
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+
+			// 発売年月 未入力補完
+		var searchYearStartModal = $('#search_sys_modal').val();
+		var searchMonthStartModal = $('#search_sms_modal').val();
+		var searchYearEndModal = $('#search_sye_modal').val();
+		var searchMonthEndModal = $('#search_sme_modal').val();
+		var searchStartModal = null;
+		var searchEndModal = null;
+		if (searchYearStartModal && searchMonthStartModal) {
+			// 開始年：入力　開始月：入力　の場合は、searchStartModalをセット
+			searchStartModal = searchYearStartModal + searchMonthStartModal;
+		} else if (!searchYearStartModal && !searchMonthStartModal) {
+			// 開始年：未入力　開始月：未入力　の場合は、searchStartModal = null をセット
+			searchStartModal = null;
+		} else if (searchYearStartModal && !searchMonthStartModal) {
+			// 開始年：入力　開始月：未入力　の場合は、searchMonthStartModal = '01' をセット
+			searchStartModal = searchYearStartModal + '01';
+		} else {
+			// 開始年：未入力　開始月：入力　の場合は、searchYearEndModal により分岐
+			if(searchYearEndModal) {
+				// searchYearEndModal：入力　の場合は、searchYearStartModal = searchYearEndModal
+				searchStartModal = searchYearEndModal + searchMonthStartModal;
+			} else {
+				// searchYearEndModal：未入力　の場合は、searchYearStartModal = now
+				searchYearStartModal = new Date().getFullYear().toString();
+				searchStartModal = searchYearStartModal + searchMonthStartModal;
+			}
+		}
+		if (searchYearEndModal && searchMonthEndModal) {
+			// 終了年：入力　終了月：入力　の場合は、searchEndModalをセット
+			searchEndModal = searchYearEndModal + searchMonthEndModal;
+		} else if (!searchYearEndModal && !searchMonthEndModal) {
+			// 終了年：未入力　終了月：未入力　の場合は、searchEndModal = null をセット
+			searchEndModal = null;
+		} else if (searchYearEndModal && !searchMonthEndModal) {
+			// 終了年：入力　終了月：未入力　の場合は、searchMonthEndModal = '12' をセット
+			searchEndModal = searchYearEndModal + '12';
+		} else {
+			// 終了年：未入力　終了月：入力　の場合は、searchYearStartModal により分岐
+			if(searchYearStartModal) {
+				// searchYearEndModal：入力　の場合は、searchYearEndModal = searchYearEndModal
+				searchEndModal = searchYearStartModal + searchMonthEndModal;
+			} else {
+				// searchYearStartModal：未入力　の場合は、searchYearEndModal = now
+				searchYearEndModal = new Date().getFullYear().toString();
+				searchEndModal = searchYearEndModal + searchMonthEndModal;
+			}
+		}
+		if (searchStartModal) {
+			paramName = 'date-min';
+			paramValue = searchStartModal;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+		if (searchEndModal) {
+			paramName = 'date-max';
+			paramValue = searchEndModal;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+
+		var sortKey = sessionStorage.getItem('listoption_sortkey');
+		if (sortKey !== null && sortKey !== '00') {
+			paramName = 'sort';
+			paramValue = sortKey;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+
+		var pageCount = sessionStorage.getItem('listoption_pagecount');
+		if (pageCount !== null && pageCount !== '30') {
+			paramName = 'per-page';
+			paramValue = pageCount;
+			arrQuery.push( { name: paramName, value: paramValue } );
+		}
+		if(url.endsWith(".0")) {
+			url += '/';
+		}
+		// query_string生成
+		url += makeQueryString(arrQuery);
+		window.location.href = url;
+	}
+});
+
+function makeQueryString(arrQuery) {
+	// query_string生成
+	if (arrQuery.length > 0) {
+		var queryString = $.map(arrQuery, function(param) {
+			return encodeURIComponent(param.name) + '=' + encodeURIComponent(param.value);
+		}).join('&');
+		return '?' + queryString;
+	} else {
+		return '';
+	}
+}
+
+// リセット
+$('#search_reset_btn').on('click', function() {
+	$('.search_form').val('');
+	$('.search_check').prop('checked', false);
+});
+
+$('#search_reset_btn_modal').on('click', function() {
+	$('.search_form').val('');
+	$('.search_check').prop('checked', false);
+});
+
+// 表示切り替え
+$("#display_change_list").on("click", function () {
+	display_change_list();
+	sessionStorage.setItem('display_change', 'list');
+});
+
+$("#display_change_grid").on("click", function () {
+	display_change_grid();
+	sessionStorage.setItem('display_change', 'grid');
+});
+
+$(document).ready(function() {
+	var display_change = sessionStorage.getItem('display_change');
+	if (display_change == 'list') {
+		display_change_list();
+	} else if (display_change == 'grid') {
+		display_change_grid();
+	}
+	// セットカテゴリリンクへのquery_string追加
+	var arrSetQuery = [];
+	var setSortKey = sessionStorage.getItem('listoption_setsortkey');
+	var setPageCount = sessionStorage.getItem('listoption_pagecount');
+	if (setSortKey !== null && setSortKey !== '90') {
+		paramName = 'sort';
+		paramValue = setSortKey;
+		arrSetQuery.push( { name: paramName, value: paramValue } );
+	}
+	if (setPageCount !== null && setPageCount !== '30') {
+		paramName = 'per-page';
+		paramValue = setPageCount;
+		arrSetQuery.push( { name: paramName, value: paramValue } );
+	}
+
+	var setLinkUrl = '/set/search/keyword/9784000000000';
+	setLinkUrl += makeQueryString(arrSetQuery);
+	$('.categorySetLink').attr('href', setLinkUrl);
+});
+
+function display_change_list() {
+	if ($("#items_field").hasClass("-grid")) {
+		$("#items_field").removeClass("-grid");
+		$("#display_change_list").addClass("-active");
+		$("#display_change_grid").removeClass("-active");
+	}
+}
+
+function display_change_grid() {
+	if (!$("#items_field").hasClass("-grid")) {
+		$("#items_field").addClass("-grid");
+		$("#display_change_list").removeClass("-active");
+		$("#display_change_grid").addClass("-active");
+	}
+}
+
+// 並び順
+$(document).on('click', function (e) {
+	if (!$(e.target).closest('#sort_modal').length) {
+		$('#sort_modal').removeClass("-selected");
+		$('#sort_modal_list').removeClass("-selected");
+	}
+});
+
+$('#sort_modal').on('click', function () {
+	if($('#sort_modal').hasClass("-selected")) {
+		$('#sort_modal').removeClass("-selected");
+		$('#sort_modal_list').removeClass("-selected");
+	} else {
+		$('#sort_modal').addClass("-selected");
+		$('#sort_modal_list').addClass("-selected");
+	}
+});
+
+// 表示件数
+$(document).on('click', function (e) {
+	if (!$(e.target).closest('#display_number_modal').length) {
+		$('#display_number_modal').removeClass("-selected");
+		$('#display_number_modal_list').removeClass("-selected");
+	}
+});
+
+$('#display_number_modal').on('click', function () {
+	if($('#display_number_modal').hasClass("-selected")) {
+		$('#display_number_modal').removeClass("-selected");
+		$('#display_number_modal_list').removeClass("-selected");
+	} else {
+		$('#display_number_modal').addClass("-selected");
+		$('#display_number_modal_list').addClass("-selected");
+	}
+});
+
+// 並び順・表示件数の保持
+$('.listDropDown__link').on('click', function () {
+	saveParam = $(this).data('listoption-param');
+	if($(this).data('listoption') == 'sortkey') {
+		sessionStorage.setItem('listoption_sortkey', saveParam);
+	} else if($(this).data('listoption') == 'pagecount') {
+		sessionStorage.setItem('listoption_pagecount', saveParam);
+	}
+});
+
+// 文字制限
+// PC
+$('#search_keyword').on('blur', function() {
+	convertLimitStr(this, 100);
+});
+$('#search_exclusion_keyword').on('blur', function() {
+	convertLimitStr(this, 80);
+});
+$('#search_author').on('blur', function() {
+	convertLimitStr(this, 78);
+});
+$('#search_publisher').on('blur', function() {
+	convertLimitStr(this, 78);
+});
+// SP
+$('#search_keyword_modal').on('blur', function() {
+	convertLimitStr(this, 100);
+});
+$('#search_exclusion_keyword_modal').on('blur', function() {
+	convertLimitStr(this, 80);
+});
+$('#search_author_modal').on('blur', function() {
+	convertLimitStr(this, 78);
+});
+$('#search_publisher_modal').on('blur', function() {
+	convertLimitStr(this, 78);
+});
+
+function convertLimitStr(current, num) {
+	if ($(current).val().length > num) {
+		var convertVal = $(current).val().substr(0, num);
+		$(current).val(convertVal);
+	}
+}
+
+// 中古価格　全角→半角
+// PC
+$('#search_used_price_min').on('blur', function() {
+	convertFullToHalf(this);
+});
+$('#search_used_price_max').on('blur', function() {
+	convertFullToHalf(this);
+});
+// SP
+$('#search_used_price_min_modal').on('blur', function() {
+	convertFullToHalf(this);
+});
+$('#search_used_price_max_modal').on('blur', function() {
+	convertFullToHalf(this);
+});
+
+function convertFullToHalf(current) {
+	var convertVal = $(current).val().replace(/[０-９]/g, function(s) {
+		return String.fromCharCode(s.charCodeAt(0) - 65248);
+	});
+	convertVal = convertVal.replace(/[^0-9]/g, '');
+	var maxDigit = 10;
+	if (convertVal.length > maxDigit) {
+		convertVal = convertVal.substring(0, maxDigit);
+	}
+	$(current).val(convertVal);
+}
+
+function replacePercent(word) {
+	if (!word || word.indexOf('%') < 0) {
+		return word;
+	}
+	var split = word.split('%');
+	var result = split[0];
+	for (var i = 1; i < split.length; i++) {
+		if (i == split.length - 1 && !split[i]) {
+			result += '%25';
+		} else if (!split[i].match(/^[0-9a-f]2/i)) {
+			result += '%25' + split[i];
+		} else {
+			result += '%' + split[i];
+		}
+	}
+	return result;
+}
+
+function encodeMark(word) {
+	word = replacePercent(word);
+	word = word.replace(/\?/g, '%253F');
+	word = word.replace(/\//g, '%252F');
+	word = word.replace(/\#/g, '%2523');
+	return word;
+}
+
+// ボタンの個数差でのCSS制御
+$(".productItem__btns").each(function(index, element) {
+	if($(element).children().length > 2) {
+		$(this).closest('.productItem').addClass('productItem--btns3col');
+	}
+});
+
+// 複数のセット商品がありますモーダル
+$('.js-modal[data-modal^="modalSetSelect-"]').on('click', function () {
+	$(this).delay(100).queue(function () {
+		adjust();
+		$(window).resize(function () {
+			adjust();
+		})
+		function adjust() {
+			var setModal = $('[id^="modalSetSelect-"]');
+			var h1 = setModal.find('.modal__title').outerHeight(true);
+			if (window.matchMedia("(min-width: 768px)").matches) {
+				//PC
+				var modalh = setModal.height();
+				var paddingTop = setModal.find('.modalContent').css('padding-top').replace('px', '');
+				setModal.find('.modalItems.js-modalInnerContent').css("height", modalh - h1 - paddingTop);
+			} else {
+				//SP
+				var windowh = $(window).height();
+				setModal.css("height", windowh * 0.97);
+				setModal.find('.modalItems.js-modalInnerContent').css("height", windowh * 0.97 - h1);
+			}
+		}
+	});
+});
+
+$('.js-ageverification').on('click', function(){
+	var modalBtn = $('#ageVerification__btns--agree');
+	// 初期化
+	modalBtn.removeClass();
+	modalBtn.addClass('btn js-agree-submit');
+	modalBtn.removeAttr('data-mode');
+	modalBtn.removeAttr('data-item');
+	modalBtn.removeAttr('data-cv-name');
+	modalBtn.removeAttr('data-stock');
+	$('.ageVerificationBlock__txt--error').hide();
+
+	// クリックボタンからパラメータ取得
+	var type = $(this).attr('data-type') ?? '';
+	var mode = $(this).attr('data-mode') ?? '';
+	var item_id = $(this).attr('data-item') ?? '';
+	var cvName = $(this).attr('data-cv-name') ?? '';
+
+	// agreeボタン パラメータ設定
+	if(type == 'cart' || type == 'arrival' || type == 'favorite') {
+		modalBtn.attr('data-mode', mode);
+		modalBtn.attr('data-item', item_id);
+		modalBtn.attr('data-cv-name', cvName);
+
+		if(type == 'cart') {
+			var stockType = $(this).attr('data-stock') ?? '';
+			modalBtn.attr('data-stock', stockType);
+		}
+
+		modalBtn.addClass('jsBtn-' + type);
+		modalBtn.addClass('ac-click-cv');
+	} else {
+		$('#modalAgeVerification > modalContent > js-modalClose').trigger('click');
+	}
+});
+$('.js-modalClose').on('click', function(){
+	if ($('#modalAgeVerification').hasClass('-show')) {
+		initializeAgeVerificationModal();
+	}
+});
+$('.modal__overlay').on('click', function(){
+	if ($('#modalAgeVerification').hasClass('-show')) {
+		initializeAgeVerificationModal();
+	}
+});
+function initializeAgeVerificationModal () {
+	var modalBtn = $('#ageVerification__btns--agree');
+	modalBtn.removeClass();
+	modalBtn.addClass('btn js-agree-submit');
+	modalBtn.removeAttr('data-mode');
+	modalBtn.removeAttr('data-item');
+	modalBtn.removeAttr('data-cv-name');
+	modalBtn.removeAttr('data-stock');
+	$('.ageVerificationBlock__txt--error').hide();
+}
+</script>
+
+			</div>
+		</div>
+
+			</div>
+		</div>
+
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock717566">
+						<section class="itemsContainer">
+    <div class="itemsContainer__headerArea itemsContainer__headerArea--spacedTop">
+        <h2 class="itemsContainer__header">検索結果の関連商品</h2>
+    </div>
+    <div id="js-recSearchRelation" class="js-recommend itemsContainer__outer" data-item-number="20" data-model-id="602" data-id="search" data-id-mb="search-mb" data-id-pc="search-pc" data-item-id="searchResult" data-genre="" data-price="" data-item-type="">
+        <!-- レコメンド出力箇所 -->
+    </div>
+</section>
+			</div>
+			<div class="itemsContainerWrap itemsContainerWrap--itemViewHistory pbNested pbNestedWrapper "  id="pbBlock714242">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock714243">
+						<section class="itemsContainer itemsContainer--itemViewHistory js-itemViewHistory">
+  <div class="itemsContainer__headerArea itemsContainer__headerArea--spacedTop -hidden js-displayItemViewHistoryHeader">
+    <h2 class="itemsContainer__header">最近チェックした商品</h2>
+    <div class="itemsContainer__textBox itemsContainer__textBox--deleteHistory js-delItemViewHistoryArea"><button class="link itemsContainer__actionButton js-delItemViewHistory"><span>履歴を消す</span></button></div> 
+  </div>
+  <div class="itemsContainer__wrapper">
+    <div class="itemsContainer__main splide js-displayItemViewHistory" id="ItemViewHistory">
+    </div>
+    <div class="itemsContainer__textBox itemsContainer__textBox--removeHistory js-undoItemViewHistoryArea -hidden">
+      <div class="itemsContainer__text">履歴をすべて削除しました</div>
+      <div class="itemsContainer__actionBox">
+        <button class="itemsContainer__actionButton js-undoItemViewHistory"><span>もとにもどす</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+			</div>
+		</div>
+
+			</div>
+		</div>
+	</div>
+
+</div></div></div><div id="footerArea" class="pbFooterArea">
+	<div id="area4" class="pbArea ">
+		<div class="pbNested " >
+			<div class="  pbNested pbNestedWrapper "  id="pbBlock10025">
+								<div class="pbNested " >
+			<div class="pbNested pbNestedWrapper "  id="pbBlock161678">
+						<footer class="footer" id="footer">
+    <div class="footer__wrap">
+      <div class="footer__inner">
+        <div class="footer__navi">
+          <p class="footer__pageTop">
+            <a href="#" class="footer__pageTopBtn js-pagetop">
+              <img src="/library/common/images/img-footer-arrow.svg" alt="ページトップへ戻る">
+            </a>
+          </p>
+          <ul>
+            <li class="footer__item footer__item--first"><a href="https://support-online.bookoff.co.jp" class="footer__link">ヘルプ・ご質問</a>
+              <ul>
+                <li class="footer__item"><a href="https://support-online.bookoff.co.jp/answer/64363fbd97ebd8c6491e0a07" class="footer__link">配送料について</a></li>
+                <li class="footer__item"><a href="https://support-online.bookoff.co.jp/answer/65852e8cd29784dd07b9bdc7" class="footer__link">支払い方法について</a></li>
+              </ul>
+            </li>
+            <li class="footer__item"><a href="https://shopping.bookoff.co.jp/service/mail" class="footer__link">メールサービス</a></li>
+            <li class="footer__item"><a href="https://regist11.smp.ne.jp/regist/is?SMPFORM=ofn-latbq-651b190782b21aa1eaa0162e484e578c" class="footer__link">ご意見・ご感想</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer__wrap footer__wrap--bottom">
+      <div class="footer__inner">
+        <ul class="footer__sns">
+          <li>
+            <a href="https://www.facebook.com/%E3%83%96%E3%83%83%E3%82%AF%E3%82%AA%E3%83%95%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3bookoffonline-166258740189848/" class="footer__snsBtn" target="_blank">
+              <img src="/library/common/images/img-footer-fb.svg" alt="Facebook">
+            </a>
+          </li>
+          <li>
+            <a href="https://x.com/bookoffonline" class="footer__snsBtn" target="_blank">
+              <img src="/library/common/images/img-footer-x.svg" alt="X">
+            </a>
+          </li>
+          <li>
+            <a href="https://page.line.me/iau9918q" class="footer__snsBtn">
+              <img src="/library/common/images/img-footer-line.svg" alt="LINE">
+            </a>
+          </li>
+        </ul>
+        <div class="footer__bottomNavi">
+          <ul>
+           <li><a href="https://www.bookoff.co.jp/" class="footer__bottomLlink" target="_blank">BOOKOFF公式サイト</a></li>
+           <li><a href="https://www.bookoffgroup.co.jp/corporate/business.html" class="footer__bottomLlink" target="_blank">企業情報</a></li>
+           <li><a href="https://member.bookoff.co.jp/bo-member-content/contract/" class="footer__bottomLlink" target="_blank">BOOKOFF会員サービス利用規約</a></li>
+           <li><a href="https://shopping.bookoff.co.jp/policies/terms" class="footer__bottomLlink">利用規約</a></li>
+          <li><a href="https://www.bookoff.co.jp/site/privacy.html" class="footer__bottomLlink" target="_blank">個人情報保護方針</a></li>
+          <li><a href="https://www.bookoff.co.jp/site/socialmedia.html" class="footer__bottomLlink" target="_blank">ソーシャルメディアポリシー</a></li>
+          <li><a href="https://www.bookoff.co.jp/site/customerharassment.html" class="footer__bottomLlink" target="_blank">カスタマーハラスメントに対する基本方針</a></li>
+          <li><a href="https://shopping.bookoff.co.jp/policies/regulatory-disclosure" class="footer__bottomLlink">特定商取引法に基づく表示</a></li>
+          <li><a href="https://shopping.bookoff.co.jp/policies/external-transmission" class="footer__bottomLlink">利用者情報の外部送信について</a></li>
+          <li><a href="https://www.bookoffgroup.co.jp/" class="footer__bottomLlink" target="_blank">ブックオフグループホールディングス株式会社</a></li>
+         </ul>
+        </div>
+        <div class="footer__bottom">
+          <div class="footer__text">
+            <p> ブックオフコーポレーション株式会社<br> 古物商許可番号 第452760001146号 神奈川県公安委員会許可 </p>
+          </div>
+          <div class="footer__copyright"> Copyright(C)BOOKOFF CORPORATION LTD.<br class="forSp">All Rights Reserved. </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+			</div>
+			<div class="pbNested pbNestedWrapper "  id="pbBlock209621">
+						
+<link rel="stylesheet" href="/library/common/css/appli/app-hide-common.css">
+
+
+			</div>
+		</div>
+
+			</div>
+		</div>
+	</div>
+
+</div></div>
+<script  src="https://content.bookoff.co.jp/js/roc/csrf_tmp.min.js"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/common/item-view-history-show.js?rev=20260427"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/recommend/zeta/build-item.js?rev=20260527"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/recommend/zeta/build-contents.js?rev=20260527"></script>
+<script  src="https://content.bookoff.co.jp/assets/js/recommend/zeta/core.js"></script>
+<script  src="/library/common/js/sjis_convert.min.js"></script>
+<script  src="/library/common/js/suggest_module.js?d=20240911"></script>
+</body>
+</html>
+<!-- cache datetime:2026/07/23 01:06:43, cache file name:/shopping/search.html --> 

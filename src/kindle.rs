@@ -23,7 +23,7 @@ impl Kindle {
     /// # Errors
     ///
     /// Returns an error if the URL is invalid or does not contain a product/dp segment.
-    fn convert_amazon_url_to_id(url: &str) -> Result<String> {
+    pub(crate) fn convert_amazon_url_to_id(url: &str) -> Result<String> {
         let url = Url::parse(url.trim_matches('\''))?;
         let mut path_segments = url
             .path_segments()

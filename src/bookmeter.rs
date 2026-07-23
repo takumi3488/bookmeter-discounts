@@ -19,6 +19,8 @@ pub struct BookMeterBook {
     pub id: u32,
     pub title: String,
     pub amazon_url: String,
+    /// 書籍の形式 (コミック / ライトノベル / 文庫 / 新書 / 単行本 など)
+    pub binding_name: Option<String>,
 }
 
 impl BookMeterBook {
@@ -26,35 +28,54 @@ impl BookMeterBook {
     ///
     /// Returns an error if fetching the book title or Amazon URL fails.
     pub async fn from_id(id: u32) -> Result<BookMeterBook> {
-        let title = { || Self::get_title(id) }
+        let doc = Self::get_book_page_with_retry(id).await?;
+        let html = Html::parse_document(&doc);
+        let title = Self::parse_title(&html, id)?;
+        let binding_name = Self::parse_binding_name(&html);
+        let amazon_url = Self::get_amazon_url(id).await?;
+        Ok(BookMeterBook {
+            id,
+            title,
+            amazon_url,
+            binding_name,
+        })
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error if the HTTP request fails.
+    async fn get_book_page(id: u32) -> Result<String> {
+        let url = format!("https://bookmeter.com/books/{id}");
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()?;
+        let doc = client.get(&url).send().await?.text().await?;
+        Ok(doc)
+    }
+
+    /// 本ページを指数バックオフでリトライしながら取得する
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the HTTP request keeps failing.
+    async fn get_book_page_with_retry(id: u32) -> Result<String> {
+        { || Self::get_book_page(id) }
             .retry(
                 ExponentialBuilder::default()
-                    .with_max_delay(Duration::from_secs(3600 * 4))
+                    .with_max_delay(Duration::from_hours(4))
                     .without_max_times(),
             )
             .sleep(tokio::time::sleep)
             .notify(|e, dur| {
                 warn!("retrying after {:?} because {:?}", dur, e);
             })
-            .await?;
-        let amazon_url = Self::get_amazon_url(id).await?;
-        Ok(BookMeterBook {
-            id,
-            title,
-            amazon_url,
-        })
+            .await
     }
 
     /// # Errors
     ///
-    /// Returns an error if the HTTP request fails or the title element is not found.
-    async fn get_title(id: u32) -> Result<String> {
-        let url = format!("https://bookmeter.com/books/{id}");
-        let client = reqwest::Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()?;
-        let doc = client.get(&url).send().await?.text().await?;
-        let html = Html::parse_document(&doc);
+    /// Returns an error if the title element is not found.
+    fn parse_title(html: &Html, id: u32) -> Result<String> {
         let selector = Selector::parse(".inner__title")
             .map_err(|e| anyhow::anyhow!("Failed to parse selector: {e:?}"))?;
         let title = html
@@ -64,6 +85,35 @@ impl BookMeterBook {
             .text()
             .collect();
         Ok(title)
+    }
+
+    /// 本ページのHTMLから形式 (コミック / ライトノベル / 文庫 など) を取得する
+    ///
+    /// 形式の要素が見つからない場合や、内容が空の場合は `None` を返す。
+    #[must_use]
+    pub fn parse_binding_name(html: &Html) -> Option<String> {
+        let selector = Selector::parse(".current-book-detail__binding-name").ok()?;
+        html.select(&selector)
+            .next()
+            .map(|e| {
+                e.text()
+                    .collect::<String>()
+                    .trim()
+                    .trim_start_matches("形式：")
+                    .to_string()
+            })
+            .filter(|name| !name.is_empty())
+    }
+
+    /// 既存の本の形式だけを取得する (`binding_name` 未保持の本の補完用)
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the HTTP request fails after retries.
+    pub async fn fetch_binding_name(id: u32) -> Result<Option<String>> {
+        let doc = Self::get_book_page_with_retry(id).await?;
+        let html = Html::parse_document(&doc);
+        Ok(Self::parse_binding_name(&html))
     }
 
     /// # Errors
@@ -198,5 +248,75 @@ impl BookMeterClient {
         let doc = client.get(&url).send().await?.text().await?;
         let html = Html::parse_document(&doc);
         Ok(html)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parse_binding_name_from_fragment(fragment: &str) -> Option<String> {
+        let html = Html::parse_fragment(fragment);
+        BookMeterBook::parse_binding_name(&html)
+    }
+
+    // 実際の本ページから抽出した .current-book-detail の断片
+    #[test]
+    fn test_parse_binding_name_light_novel() {
+        let fragment = r#"
+            <div class="current-book-detail">
+              <p class="current-book-detail__binding-name">形式：ライトノベル</p>
+              <p class="current-book-detail__publisher">出版社：スターツ出版</p>
+            </div>
+        "#;
+        assert_eq!(
+            parse_binding_name_from_fragment(fragment),
+            Some("ライトノベル".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_binding_name_comic() {
+        let fragment = r#"
+            <div class="current-book-detail">
+              <p class="current-book-detail__binding-name">形式：コミック</p>
+              <p class="current-book-detail__publisher">出版社：講談社</p>
+            </div>
+        "#;
+        assert_eq!(
+            parse_binding_name_from_fragment(fragment),
+            Some("コミック".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_binding_name_shinsho() {
+        let fragment = r#"
+            <div class="current-book-detail">
+              <p class="current-book-detail__binding-name">形式：新書</p>
+              <p class="current-book-detail__publisher">出版社：スターツ出版</p>
+            </div>
+        "#;
+        assert_eq!(
+            parse_binding_name_from_fragment(fragment),
+            Some("新書".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_binding_name_not_found() {
+        let fragment = r#"<div class="current-book-detail"></div>"#;
+        assert_eq!(parse_binding_name_from_fragment(fragment), None);
+    }
+
+    #[test]
+    fn test_parse_binding_name_empty() {
+        // 要素はあるが内容が空の場合は未取得 (None) として扱う
+        let fragment = r#"
+            <div class="current-book-detail">
+              <p class="current-book-detail__binding-name"></p>
+            </div>
+        "#;
+        assert_eq!(parse_binding_name_from_fragment(fragment), None);
     }
 }
