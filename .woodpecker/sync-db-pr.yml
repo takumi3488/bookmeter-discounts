@@ -1,0 +1,20 @@
+when:
+  - event: pull_request
+
+steps:
+  - name: dry-run-db-schema
+    image: python:3.14-alpine
+    environment:
+      K8S_DB_URL: http://k8s-db.default.svc.cluster.local/api/v1/sync
+      GITHUB_TOKEN:
+        from_secret: github_token
+      POSTGRES_USER:
+        from_secret: postgres_user
+      POSTGRES_PASSWORD:
+        from_secret: postgres_password
+      POSTGRES_HOST:
+        from_secret: postgres_host
+      POSTGRES_PORT:
+        from_secret: postgres_port
+    commands:
+      - python scripts/k8s_db_sync.py --dry-run --comment
