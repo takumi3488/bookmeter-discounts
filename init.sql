@@ -47,3 +47,17 @@ create table if not exists public.used_book_offers (
     constraint used_book_offers_bookmeter_id_fkey foreign key (bookmeter_id) references public.books (bookmeter_id) on delete cascade
 );
 create index if not exists used_book_offers_product_id_index on public.used_book_offers (product_id);
+
+-- 中古本オファーと書籍情報の結合ビュー (外部サービスから参照される)
+create or replace view public.used_book_offers_with_books as
+SELECT o.bookmeter_id,
+    o.site,
+    o.product_url,
+    o.price,
+    o.condition,
+    o.in_stock,
+    o.updated_at,
+    b.title,
+    b.amazon_url
+   FROM used_book_offers o
+     JOIN books b ON b.bookmeter_id = o.bookmeter_id;
