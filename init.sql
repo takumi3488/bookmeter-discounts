@@ -18,6 +18,21 @@ create index if not exists books_price_index on public.books (price);
 create index if not exists books_discount_rate_index on public.books (discount_rate);
 create index if not exists books_title_index on public.books (title);
 
+-- 割引中またはKindle Unlimited対象の本のビュー (外部サービスから参照される)
+create or replace view public.books_discounted as
+SELECT bookmeter_id,
+    amazon_url,
+    kindle_id,
+    title,
+    basis_price,
+    price,
+    discount_rate,
+    updated_at,
+    active_at,
+    is_kindle_unlimited
+   FROM books
+  WHERE discount_rate IS NOT NULL AND discount_rate >= 0.15::double precision OR is_kindle_unlimited;
+
 -- 中古本サイト (bookoff / valuebooks / netoff) の商品オファー
 create table if not exists public.used_book_offers (
     bookmeter_id bigint not null,
