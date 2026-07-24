@@ -1,4 +1,4 @@
-FROM rust:1.96.0-slim-bookworm@sha256:4732ca96fd086cb9be682050c3f0176288eebaac2b80aa2bcefccfaf198e1950 AS builder
+FROM rust:1.97.1-slim-bookworm@sha256:99e09cb2284e2ddbb73a995deee3e91783fd04d177602ccf6eab326d778ee777 AS builder
 
 WORKDIR /usr/src/app
 
@@ -6,7 +6,7 @@ COPY . .
 RUN cargo build --release
 
 
-FROM debian:bookworm-slim@sha256:60eac759739651111db372c07be67863818726f754804b8707c90979bda511df AS cli
+FROM debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818 AS cli
 
 WORKDIR /usr/src/app
 
@@ -18,7 +18,7 @@ COPY --from=builder /usr/src/app/target/release/bookmeter_discounts .
 CMD ["./bookmeter_discounts"]
 
 
-FROM debian:bookworm-slim@sha256:60eac759739651111db372c07be67863818726f754804b8707c90979bda511df AS server
+FROM debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818 AS server
 
 WORKDIR /usr/src/app
 
