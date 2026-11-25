@@ -9,6 +9,7 @@ mod isbn;
 mod kindle;
 mod metrics;
 pub mod model;
+pub mod schedule;
 pub mod used_book;
 pub mod used_book_offer;
 use futures::{Stream, TryStreamExt};
